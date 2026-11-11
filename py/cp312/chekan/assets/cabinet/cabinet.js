@@ -134,7 +134,7 @@ async function api(path,body){
 }
 async function loadAccess(){
  try{const {json}=await api('/api/access');S.access=json;if(json.signed_in===false&&!json.host){needLogin();return false}}
- catch(e){if(!(e instanceof AuthError))S.access=null}
+ catch(e){if(!(e instanceof AuthError)&&!S.access)S.access=null;return null}
  renderConn();return true;
 }
 async function fetchInto(key,path){
@@ -447,7 +447,7 @@ function renderChars(){
  const ps=(S.projects||[]).filter(p=>!p.classic),slug=charsSlug();
  const head=`<div class="ptitle"><h1>Персонажи</h1><p class="hint">По умолчанию команда — бурундуки. Любого участника можно заменить своим персонажем: тамагочи, питомцем, рисунком, фото. Загрузите картинку PNG, GIF, WebP или SVG до 300 КБ. Дыхание, подпрыгивание за работой, знак вопроса и сон Чекан добавит сам.</p></div>`;
  if(!S.projects)return `<div class="page">${head}<p class="hint">Загружаем…</p></div>`;
- if(!slug)return `<div class="page">${head}<section class="panel empty"><p>Проектов пока нет, поэтому и команды нет.</p></section></div>`;
+ if(!slug)return `<div class="page">${head}<section class="panel empty"><p>Пока нет проектов с командой. Команда появляется, когда задачу ставят словами «чекан, …» в Claude.</p></section></div>`;
  const pick=ps.length>1?`<div class="projpick" role="group" aria-label="Проект">${ps.map(p=>`<button class="btn" data-chars="${esc(p.slug)}" aria-pressed="${p.slug===slug}">${esc(p.title)}</button>`).join('')}</div>`:'';
  const ready=S.project&&S.project.slug===slug,t=ready?team():[];
  const mine=[...new Set(t.map(m=>img(m.img)).filter(Boolean))];
@@ -465,7 +465,8 @@ function accessControls(){
 }
 function addrList(){
  const ad=(S.access&&S.access.addresses)||[];
- return ad.length?`<ul class="addr">${ad.map(([l,u],i)=>`<li><span class="hint">${esc(l)}</span><code id="addr-${i}">${esc(u)}</code><button class="btn" data-copy="addr-${i}">Скопировать</button></li>`).join('')}</ul>`:'';
+ return ad.length?`<ul class="addr">${ad.map(([l,u],i)=>`<li><span class="hint">${esc(l)}</span><code id="addr-${i}">${esc(u)}</code><button class="btn" data-copy="addr-${i}">Скопировать</button></li>`).join('')}</ul>`
+  :`<p class="hint">Адрес этого компьютера в домашней сети определить не удалось. Посмотрите его в настройках сети (Wi-Fi → подробнее → IP-адрес, обычно 192.168.…) и откройте на другом устройстве http://&lt;этот адрес&gt;:${esc(location.port||'8789')}</p>`;
 }
 function renderPrefs(){
  return `<div class="page"><div class="ptitle"><h1>Настройки</h1></div>
@@ -554,13 +555,17 @@ function look(rid,body){
  const m=by(rid);if(m){Object.assign(m,body);if(body.reset)m.img=null;render()}
  act(slugP()+'/look',{rid,...body},body.reset?'Бурундук вернулся':'Внешний вид сохранён');
 }
-async function accessAct(path,body,ok){
+async function accessAct(path,body,ok,want){
  if(S.busy)return;S.busy=true;
  try{await api(path,body||{});toast(ok);}
- catch(e){if(!(e instanceof AuthError))toast(e.message,true)}
+ catch(e){if(!(e instanceof AuthError))toast(e.message,true);want=undefined}
  finally{S.busy=false}
- await loadAccess();if(S.page==='prefs')render();
- setTimeout(async()=>{await loadAccess();if(S.page==='prefs')render()},1500);
+ for(let i=0;i<30;i++){
+  if(i)await new Promise(r=>setTimeout(r,500));
+  const got=await loadAccess();
+  if(got!==null&&(want===undefined||(S.access&&S.access.remote===want)))break;
+ }
+ if(S.page==='prefs')render();
 }
 function copyFrom(id){
  const el=document.getElementById(id);if(!el)return;const v=el.textContent;
@@ -590,7 +595,7 @@ document.addEventListener('click',e=>{
  else if(d.cat){S.roleCat=d.cat;render()}
  else if(d.chars){S.charsSlug=d.chars;S.project=null;render();loadPage(true)}
  else if(d.setpw){const i=t.closest('.pwset').querySelector('input'),v=i.value;if(v.length<10){toast('Пароль должен быть не короче 10 символов',true);return}const had=S.access&&S.access.has_password;i.value='';accessAct('/api/access/password',{password:v},had?'Пароль сменён. Все старые входы закрыты.':'Пароль задан. Теперь можно включить вход с других устройств.')}
- else if(d.delpw){if(!confirm('Удалить пароль? Вход с других устройств выключится, все входы закроются.'))return;accessAct('/api/access/password/delete',{},'Пароль удалён. Вход с других устройств выключен.')}
+ else if(d.delpw){if(!confirm('Удалить пароль? Вход с других устройств выключится, все входы закроются.'))return;accessAct('/api/access/password/delete',{},'Пароль удалён. Вход с других устройств выключен.',false)}
  else if(d.logoutall){accessAct('/api/access/logout-all',{},'Все входы закрыты. На других устройствах снова попросят пароль.')}
 });
 document.addEventListener('change',e=>{
@@ -599,7 +604,7 @@ document.addEventListener('change',e=>{
   if(!/^image\/(png|gif|webp|svg\+xml)$/.test(f.type)){toast('Подойдёт картинка PNG, GIF, WebP или SVG',true);return}
   if(f.size>MAX_IMG){toast('Картинка больше 300 КБ. Возьмите поменьше.',true);return}
   const r=new FileReader();r.onload=()=>look(rid,{img:r.result});r.onerror=()=>toast('Не удалось прочитать картинку',true);r.readAsDataURL(f);return}
- if(el.dataset&&el.dataset.remote){const on=el.checked;el.checked=!on;accessAct('/api/access/remote',{on},on?'Вход с других устройств включён':'Вход с других устройств выключен. Все входы закрыты.')}
+ if(el.dataset&&el.dataset.remote){const on=el.checked;el.checked=!on;accessAct('/api/access/remote',{on},on?'Вход с других устройств включён':'Вход с других устройств выключен. Все входы закрыты.',on)}
 });
 document.addEventListener('submit',async e=>{
  const f=e.target;e.preventDefault();
@@ -620,4 +625,4 @@ window.addEventListener('hashchange',()=>{if(S.page==='project'){parse();closeDr
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S.page!=='login')loadPage(false)});
 setInterval(()=>{if(!document.hidden&&!S.busy&&['project','projects','chars'].includes(S.page))loadPage(false)},3000);
 
-(async()=>{parse();S.path=location.pathname;const ok=await loadAccess();if(!ok)return;if(S.page==='login'){S.back='/';render(true);return}render(true);loadPage(true)})();
+(async()=>{parse();S.path=location.pathname;const ok=await loadAccess();if(ok===false)return;if(S.page==='login'){S.back='/';render(true);return}render(true);loadPage(true)})();

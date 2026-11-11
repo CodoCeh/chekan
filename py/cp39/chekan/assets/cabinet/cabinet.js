@@ -464,6 +464,7 @@ function accessControls(){
   ${a.sessions!=null?`<div class="trow"><span><b>Где выполнен вход</b><br><span class="hint">Устройств с открытым входом: ${fmt(a.sessions)}</span></span><button class="btn" data-logoutall="1"${dis}>Выйти везде</button></div>`:''}`;
 }
 function addrList(){
+ if(S.access&&S.access.lan_error)return `<p class="loginerr" role="alert">Открыть кабинет для других устройств не получилось: ${esc(S.access.lan_error)}. На этом компьютере кабинет работает как раньше. Выключите и снова включите вход через минуту.</p>`;
  const ad=(S.access&&S.access.addresses)||[];
  return ad.length?`<ul class="addr">${ad.map(([l,u],i)=>`<li><span class="hint">${esc(l)}</span><code id="addr-${i}">${esc(u)}</code><button class="btn" data-copy="addr-${i}">Скопировать</button></li>`).join('')}</ul>`
   :`<p class="hint">Адрес этого компьютера в домашней сети определить не удалось. Посмотрите его в настройках сети (Wi-Fi → подробнее → IP-адрес, обычно 192.168.…) и откройте на другом устройстве http://&lt;этот адрес&gt;:${esc(location.port||'8789')}</p>`;

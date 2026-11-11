@@ -90,7 +90,12 @@ button{font:inherit;color:inherit}
 .bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:31;background:var(--bg)}
 .barin{max-width:1240px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-.logo{font-family:var(--f-display);font-weight:700;font-size:17px;color:var(--fg);text-decoration:none;letter-spacing:.02em}
+.logo{font-family:var(--f-display);font-weight:700;font-size:17px;color:var(--fg);text-decoration:none;letter-spacing:.02em;display:inline-flex;align-items:center;gap:8px}
+.logo img{border-radius:7px;display:block}
+.forged{margin:40px 0 24px;display:flex;justify-content:center}
+.forged a{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);text-decoration:none;min-height:24px}
+.forged a:hover{color:var(--fg)}
+.forged img{border-radius:5px;display:block}
 .gnav{display:flex;gap:4px;flex-wrap:wrap}
 .gnav a{padding:6px 12px;border-radius:9px;text-decoration:none;color:var(--muted);font-weight:500}
 .gnav a[aria-current="page"]{background:var(--surface);color:var(--fg);box-shadow:0 0 0 1px var(--line)}

@@ -103,7 +103,7 @@ git clone https://github.com/CodoCeh/chekan ~/.chekan-app
 python3 ~/.chekan-app/install.py
 ```
 
-**Как обновить?** `claude plugin update chekan@codoceh`, затем новая сессия Claude.
+**Как обновить?** Команда `chekan update`: она сама скачает новую версию с GitHub и обновит плагин в Claude. Узнать, есть ли новая версия, не обновляя: `chekan update --check`. После обновления откройте новую сессию Claude.
 
 ## Команды для терминала
 
@@ -116,6 +116,7 @@ python3 ~/.chekan-app/install.py
 | `chekan progress` | три строки: сделано, дальше, нужно от вас |
 | `chekan roles` | список ролей |
 | `chekan dash` | открыть кабинет |
+| `chekan update` | обновить Чекан до последней версии |
 
 Исходный код Чекана закрыт, здесь лежит готовая сборка. Пользоваться ею можно бесплатно, условия в файле [LICENSE](LICENSE).
 

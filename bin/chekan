@@ -1,0 +1,14 @@
+#!/bin/sh
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+exec python3 -c '
+import os, sys
+root = sys.argv.pop(1)
+if os.path.isdir(os.path.join(root, "py")):
+    pkg = os.path.join(root, "py", "cp%d%d" % sys.version_info[:2])
+    if not os.path.isdir(pkg):
+        sys.exit("Чекан: нужен Python 3.9–3.14, а python3 здесь %d.%d" % sys.version_info[:2])
+    root = pkg
+sys.path.insert(0, root)
+from chekan.__main__ import main
+sys.exit(main())
+' "$ROOT" "$@"

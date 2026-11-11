@@ -1,0 +1,50 @@
+{
+ "price_expensive_per_mtok": 10.0,
+ "claude-code": {
+  "light": "haiku",
+  "work": "sonnet",
+  "expensive": "opus",
+  "known": {
+   "haiku": "light",
+   "sonnet": "work",
+   "opus": "expensive",
+   "fable": "expensive"
+  }
+ },
+ "codex": {
+  "light": "gpt-5-mini",
+  "work": "gpt-5",
+  "expensive": "gpt-5-pro",
+  "known": {
+   "gpt-5-mini": "light",
+   "gpt-5-nano": "light",
+   "gpt-5": "work",
+   "gpt-5-codex": "work",
+   "gpt-5-pro": "expensive",
+   "o3-pro": "expensive"
+  }
+ },
+ "opencode": {
+  "light": "anthropic/claude-haiku",
+  "work": "anthropic/claude-sonnet",
+  "expensive": "anthropic/claude-opus",
+  "known": {
+   "anthropic/claude-haiku": "light",
+   "anthropic/claude-sonnet": "work",
+   "anthropic/claude-opus": "expensive"
+  }
+ },
+ "antigravity": {
+  "light": "gemini-flash",
+  "work": "gemini-pro",
+  "expensive": "gemini-ultra",
+  "known": {
+   "gemini-flash": "light",
+   "gemini-flash-lite": "light",
+   "gemini-pro": "work",
+   "gemini-ultra": "expensive",
+   "claude-sonnet": "work",
+   "claude-opus": "expensive"
+  }
+ }
+}

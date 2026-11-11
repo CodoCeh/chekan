@@ -468,9 +468,16 @@ function addrList(){
  return ad.length?`<ul class="addr">${ad.map(([l,u],i)=>`<li><span class="hint">${esc(l)}</span><code id="addr-${i}">${esc(u)}</code><button class="btn" data-copy="addr-${i}">Скопировать</button></li>`).join('')}</ul>`
   :`<p class="hint">Адрес этого компьютера в домашней сети определить не удалось. Посмотрите его в настройках сети (Wi-Fi → подробнее → IP-адрес, обычно 192.168.…) и откройте на другом устройстве http://&lt;этот адрес&gt;:${esc(location.port||'8789')}</p>`;
 }
+function panelControls(){
+ const a=S.access;if(!a||!a.host)return '';
+ return `<section class="panel"><h2>Панель</h2>
+  <label class="trow" for="autostop-on"><span><b>Выключать панель, когда все проекты закончены</b><br><span class="hint">Без галки панель работает всегда, пока включён компьютер. Новая задача «чекан, …» включит панель снова.</span></span><input type="checkbox" id="autostop-on" class="toggle" data-autostop="1"${a.autostop?' checked':''}></label>
+  <div class="trow"><span><b>Выключить панель сейчас</b><br><span class="hint">Страница перестанет открываться. Команда при этом продолжит работу. Включить снова: новая задача «чекан, …» или команда <code>chekan dash</code> в терминале.</span></span><button class="btn" data-panelstop="1">Выключить</button></div></section>`;
+}
 function renderPrefs(){
  return `<div class="page"><div class="ptitle"><h1>Настройки</h1></div>
   <section class="panel"><h2>Вход с других устройств</h2>${accessControls()}${S.access&&S.access.remote?addrList():''}</section>
+  ${panelControls()}
   <section class="panel"><h2>Работа команды</h2>
    <p>Режим работы, сколько участников работают одновременно, лимит токенов и дорогие модели задаются при постановке задачи.</p>
    <p class="hint">Чтобы поменять их в идущем проекте, напишите Бригадиру во вкладке «Чат», например: «работайте по двое» или «лимит 300 тысяч токенов».</p></section>
@@ -596,6 +603,7 @@ document.addEventListener('click',e=>{
  else if(d.chars){S.charsSlug=d.chars;S.project=null;render();loadPage(true)}
  else if(d.setpw){const i=t.closest('.pwset').querySelector('input'),v=i.value;if(v.length<10){toast('Пароль должен быть не короче 10 символов',true);return}const had=S.access&&S.access.has_password;i.value='';accessAct('/api/access/password',{password:v},had?'Пароль сменён. Все старые входы закрыты.':'Пароль задан. Теперь можно включить вход с других устройств.')}
  else if(d.delpw){if(!confirm('Удалить пароль? Вход с других устройств выключится, все входы закроются.'))return;accessAct('/api/access/password/delete',{},'Пароль удалён. Вход с других устройств выключен.',false)}
+ else if(d.panelstop){if(!confirm('Выключить панель? Страница перестанет открываться, команда продолжит работу.'))return;api('/api/access/panel/stop',{}).then(()=>{S.busy=true;$('#view').innerHTML='<div class="page"><section class="panel"><h1>Панель выключена</h1><p class="hint">Команда продолжает работу. Включить панель снова: новая задача «чекан, …» в Claude или команда <code>chekan dash</code> в терминале.</p></section></div>'},e=>toast(e.message,true))}
  else if(d.logoutall){accessAct('/api/access/logout-all',{},'Все входы закрыты. На других устройствах снова попросят пароль.')}
 });
 document.addEventListener('change',e=>{
@@ -604,6 +612,7 @@ document.addEventListener('change',e=>{
   if(!/^image\/(png|gif|webp|svg\+xml)$/.test(f.type)){toast('Подойдёт картинка PNG, GIF, WebP или SVG',true);return}
   if(f.size>MAX_IMG){toast('Картинка больше 300 КБ. Возьмите поменьше.',true);return}
   const r=new FileReader();r.onload=()=>look(rid,{img:r.result});r.onerror=()=>toast('Не удалось прочитать картинку',true);r.readAsDataURL(f);return}
+ if(el.dataset&&el.dataset.autostop){const on=el.checked;el.checked=!on;accessAct('/api/access/panel/autostop',{on},on?'Панель выключится, когда все проекты закончатся':'Панель будет работать всегда')}
  if(el.dataset&&el.dataset.remote){const on=el.checked;el.checked=!on;accessAct('/api/access/remote',{on},on?'Вход с других устройств включён':'Вход с других устройств выключен. Все входы закрыты.',on)}
 });
 document.addEventListener('submit',async e=>{

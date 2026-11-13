@@ -250,9 +250,11 @@ a.btn{color:inherit;text-decoration:none;display:inline-block;width:max-content}
 .chip .head{transform-box:view-box;transform-origin:60px 72px}
 .chip .eyes{transform-box:view-box;transform-origin:60px 50px;animation:blink 5.2s infinite;animation-delay:var(--d)}
 .chip .arm{transform-box:view-box;transform-origin:80px 78px}
-.chip .armL{transform-box:view-box;transform-origin:42px 80px}
-.chip.tool-typing.st-working .arm,.chip.tool-typing.st-working .armL{animation:tap .3s ease-in-out infinite alternate}
-.chip.tool-typing.st-working .armL{animation-delay:-.15s}
+.chip.tool-typing .arm,.chip.tool-pen .arm{transform-origin:78px 85px}
+.chip .armL{transform-box:view-box;transform-origin:42px 84px}
+.chip.tool-typing.st-working .arm{animation:tapR .28s ease-in-out infinite alternate}
+.chip.tool-typing.st-working .armL{animation:tapL .28s ease-in-out infinite alternate}
+.chip.tool-typing.st-working .armL{animation-delay:-.14s}
 .chip.tool-typing.st-working .head{animation:nod 3s ease-in-out infinite}
 .office .cursor{animation:blinkc 1s steps(1) infinite}
 .office .scr-bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow 1.8s ease-in-out infinite alternate}
@@ -262,15 +264,17 @@ a.btn{color:inherit;text-decoration:none;display:inline-block;width:max-content}
 .chip.gaze-r.st-working .pupils{transform:translateX(2.6px) translateY(1.2px)}
 .chip.gaze-r.st-working .head{animation:screenlook 3.2s ease-in-out infinite}
 .chip.tool-pen.st-working .head{animation:write 2.8s ease-in-out infinite}
-.chip.tool-pen.st-working .pupils{transform:translateY(2.4px)}
-.chip.tool-pen.st-working .arm{animation:scribble .45s ease-in-out infinite alternate}
+.chip.tool-pen.st-working .pupils{transform:translateY(4px) scale(1,.8)}
+.chip.tool-pen.st-working .arm{animation:scribble .42s ease-in-out infinite alternate}
 .chip.tool-pen.st-working .armL{animation:none}
 .chip.st-resting.tool-pen .arm{transform:none}
 .office .ink{stroke-dasharray:46;stroke-dashoffset:46;animation:inkdraw 3.2s linear infinite}
 .office .glow{animation:fire 2.4s ease-in-out infinite alternate}
-@keyframes write{0%,100%{transform:translateY(11px) rotate(3deg) scale(1,.97)}50%{transform:translateY(13px) rotate(6deg) scale(1,.97)}}
+@keyframes write{0%,100%{transform:translateY(6px) rotate(2deg) scale(1,.95)}50%{transform:translateY(7.5px) rotate(4deg) scale(1,.95)}}
 @keyframes screenlook{0%,100%{transform:rotate(5deg) translateX(2px)}50%{transform:rotate(7deg) translateX(3px) translateY(1px)}}
-@keyframes scribble{from{transform:translate(0,0)}to{transform:translate(-4px,1.5px)}}
+@keyframes scribble{from{transform:rotate(0)}to{transform:rotate(5deg)}}
+@keyframes tapR{from{transform:rotate(0)}to{transform:rotate(3deg)}}
+@keyframes tapL{from{transform:rotate(0)}to{transform:rotate(-3deg)}}
 @keyframes inkdraw{0%{stroke-dashoffset:46}70%,100%{stroke-dashoffset:0}}
 .office .stars,.office .moon,.office .sun{display:none}
 .office[data-tod="night"]{--sky1:#0E1A33;--sky2:#23335A}

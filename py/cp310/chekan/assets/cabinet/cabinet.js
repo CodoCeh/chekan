@@ -45,12 +45,12 @@ function chip(m,opt={}){
  let tl2='',armPath='M77 79 Q86 72 93 63',hand=[93,63],leftArm=`<ellipse cx="41" cy="88" rx="5.5" ry="10" fill="${f}" ${sw} transform="rotate(15 41 88)"/>`;
  switch(tl){
   case 'typing':
-   armPath='M77 80 Q83 92 76 101';hand=[76,101];
-   leftArm=`<g class="armL"><path d="M43 80 Q37 92 44 101" fill="none" stroke="${o}" stroke-width="11.5" stroke-linecap="round"/><path d="M43 80 Q37 92 44 101" fill="none" stroke="${f}" stroke-width="7" stroke-linecap="round"/><circle cx="44" cy="101" r="4.6" fill="${d}" stroke="${o}" stroke-width="2"/></g>`;break;
+   armPath='M78 84 Q84 100 72 110';hand=[72,110];
+   leftArm=`<g class="armL"><path d="M42 84 Q36 100 48 110" fill="none" stroke="${o}" stroke-width="11.5" stroke-linecap="round"/><path d="M42 84 Q36 100 48 110" fill="none" stroke="${f}" stroke-width="7" stroke-linecap="round"/><circle cx="48" cy="110" r="4.6" fill="${d}" stroke="${o}" stroke-width="2"/></g>`;break;
   case 'pen':
-   armPath='M77 80 Q88 95 80 106';hand=[80,106];
-   tl2=`<line x1="80" y1="106" x2="93" y2="95" stroke="#1D2620" stroke-width="2.8" stroke-linecap="round"/><circle cx="93" cy="95" r="1.8" fill="#C9A227"/>`;
-   leftArm=`<g class="armL"><path d="M43 80 Q37 94 46 104" fill="none" stroke="${o}" stroke-width="11.5" stroke-linecap="round"/><path d="M43 80 Q37 94 46 104" fill="none" stroke="${f}" stroke-width="7" stroke-linecap="round"/><circle cx="46" cy="104" r="4.6" fill="${d}" stroke="${o}" stroke-width="2"/></g>`;break;
+   armPath='M78 86 Q86 102 70 111';hand=[70,111];
+   tl2=`<line x1="68" y1="114" x2="79" y2="99" stroke="#1D2620" stroke-width="2.8" stroke-linecap="round"/><circle cx="79" cy="99" r="1.8" fill="#C9A227"/>`;
+   leftArm=`<g class="armL"><path d="M42 86 Q34 102 46 111" fill="none" stroke="${o}" stroke-width="11.5" stroke-linecap="round"/><path d="M42 86 Q34 102 46 111" fill="none" stroke="${f}" stroke-width="7" stroke-linecap="round"/><circle cx="46" cy="111" r="4.6" fill="${d}" stroke="${o}" stroke-width="2"/></g>`;break;
   case 'letters':
    tl2=`<g class="carry"><rect x="85" y="47" width="26" height="17" rx="2" fill="#FBF7EE" ${sw}/><path d="M85 47 L98 57 L111 47" fill="none" stroke="${o}" stroke-width="1.6"/><rect x="88" y="41" width="26" height="17" rx="2" fill="#FFFDF7" ${sw}/><path d="M88 41 L101 51 L114 41" fill="none" stroke="${o}" stroke-width="1.6"/></g>`;break;
   case 'magnifier':
@@ -223,9 +223,9 @@ function monitorBack(cx,dy,s){
  return `<path d="M${x} ${y-4} L${x+52} ${y+2} L${x+52} ${y+36} L${x} ${y+42} Z" fill="#2D3640" stroke="#1D2620" stroke-width="2" stroke-linejoin="round"/>${on?`<path class="glow" d="M${x} ${y-4} L${x-6} ${y-2} L${x-6} ${y+40} L${x} ${y+42} Z" fill="#BFE3FF" opacity=".55"/>`:''}<path d="M${x+4} ${y} L${x+48} ${y+5}" stroke="#55606A" stroke-width="2"/><circle cx="${x+27}" cy="${y+19}" r="3.5" fill="${on?'#9FD8B4':'#55606A'}"/><rect x="${x+21}" y="${y+40}" width="8" height="11" fill="#55606A"/><rect x="${x+11}" y="${y+50}" width="28" height="4" rx="2" fill="#55606A"/>`;
 }
 function papers(cx,dy,s){
- const on=s==='working',y=400+dy,ink=on?' class="ink"':'';
- return `<path d="M${cx-46} ${y+14} L${cx-40} ${y} L${cx+10} ${y} L${cx+14} ${y+14} Z" fill="#FBF7EE" stroke="#C9BFAE"/>
-  <path${ink} d="M${cx-36} ${y+4} H${cx+4}" stroke="#5C6A61" stroke-width="1.4"/><path${ink} d="M${cx-38} ${y+8} H${cx+6}" stroke="#5C6A61" stroke-width="1.4" style="animation-delay:1s"/><path${ink} d="M${cx-40} ${y+12} H${cx-6}" stroke="#2F5FA8" stroke-width="1.6" style="animation-delay:2s"/>
+ const on=s==='working',y=404+dy,ink=on?' class="ink"':'';
+ return `<path d="M${cx-46} ${y+10} L${cx-40} ${y} L${cx+10} ${y} L${cx+14} ${y+10} Z" fill="#FBF7EE" stroke="#C9BFAE"/>
+  <path${ink} d="M${cx-36} ${y+3} H${cx+4}" stroke="#5C6A61" stroke-width="1.3"/><path${ink} d="M${cx-38} ${y+6} H${cx+6}" stroke="#5C6A61" stroke-width="1.3" style="animation-delay:1s"/><path${ink} d="M${cx-40} ${y+9} H${cx-6}" stroke="#2F5FA8" stroke-width="1.5" style="animation-delay:2s"/>
   <rect x="${cx+30}" y="${y-4}" width="34" height="5" rx="1" fill="#FFFDF7" stroke="#C9BFAE"/><rect x="${cx+32}" y="${y+1}" width="34" height="5" rx="1" fill="#FBF7EE" stroke="#C9BFAE"/><rect x="${cx+29}" y="${y+6}" width="34" height="5" rx="1" fill="#FFFDF7" stroke="#C9BFAE"/>
   <rect x="${cx+44}" y="${y-30}" width="4" height="26" fill="#55606A"/><path d="M${cx+34} ${y-30} L${cx+58} ${y-30} L${cx+52} ${y-42} L${cx+40} ${y-42} Z" fill="#2B8556" stroke="#1D2620" stroke-width="1.5"/>${on?`<path d="M${cx+34} ${y-30} L${cx+18} ${y+12} L${cx+70} ${y+12} L${cx+58} ${y-30} Z" fill="#FFE9A8" opacity=".22"/>`:''}`;
 }

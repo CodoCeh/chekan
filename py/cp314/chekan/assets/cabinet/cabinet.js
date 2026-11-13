@@ -254,19 +254,24 @@ function whiteboard(){
    :`<circle cx="${x+8}" cy="${y-5}" r="8" fill="none" stroke="var(--trim)" stroke-width="2"/>`;
   return dot+`<text x="${x+24}" y="${y}" font-size="15" font-weight="${c==='current'?700:500}" fill="var(--ink)">${esc(cut(n,12))}</text>`}).join('');
 }
+const PLAYED=(()=>{try{return new Set(JSON.parse(sessionStorage.getItem('chekan-handoffs')||'[]'))}catch(e){return new Set()}})();
+function markPlayed(k){PLAYED.add(k);try{sessionStorage.setItem('chekan-handoffs',JSON.stringify([...PLAYED].slice(-200)))}catch(e){}}
 function office(){
  const rs=rooms(),ri=Math.min(S.room,rs.length-1),members=rs[ri];
  const per=NARROW.matches?3:PER_ROW,rowsN=Math.max(1,Math.ceil(members.length/per)),H=580+(rowsN-1)*ROWH;
  const pos={};
  members.forEach((m,i)=>{const r=Math.floor(i/per),inRow=Math.min(per,members.length-r*per),c=i%per;pos[m.id]={cx:610-(inRow-1)*100+200*c,dy:r*ROWH}});
  const act=(P().chain||[]).find(c=>c.st==='active'&&c.from&&c.to&&c.from!==c.to&&pos[c.from]&&pos[c.to]);
+ const hkey=act?`${P().slug||''}:${act.from}>${act.to}:${act.what||''}`:'';
+ const played=act&&PLAYED.has(hkey);
+ if(act&&!played&&!S.handoffTimer)S.handoffTimer=setTimeout(()=>{S.handoffTimer=null;markPlayed(hkey);if(S.page==='project')render()},14500);
  const planks=[];for(let y=412;y<H;y+=y<530?(y<446?34:y<486?40:44):48)planks.push(`<line x1="0" y1="${y}" x2="1200" y2="${y}" stroke="var(--wood2)" stroke-width="2"/>`);
  const desks=members.map(m=>{const p=pos[m.id];let cls='',extra='';
-  if(act&&m.id===act.from)cls='away';
-  if(act&&m.id===act.to){cls='sync';extra=`<g class="handstack"><rect x="${p.cx-76}" y="${402+p.dy}" width="30" height="12" rx="1.5" fill="#FBF7EE" stroke="#C9BFAE"/><path d="M${p.cx-76} ${402+p.dy} L${p.cx-61} ${410+p.dy} L${p.cx-46} ${402+p.dy}" fill="none" stroke="#C9BFAE"/><rect x="${p.cx-74}" y="${396+p.dy}" width="30" height="8" rx="1.5" fill="#FFFDF7" stroke="#C9BFAE"/></g>`}
+  if(act&&!played&&m.id===act.from)cls='away';
+  if(act&&m.id===act.to){cls=played?'':'sync';extra=`<g class="handstack${played?' done':''}"><rect x="${p.cx-76}" y="${402+p.dy}" width="30" height="12" rx="1.5" fill="#FBF7EE" stroke="#C9BFAE"/><path d="M${p.cx-76} ${402+p.dy} L${p.cx-61} ${410+p.dy} L${p.cx-46} ${402+p.dy}" fill="none" stroke="#C9BFAE"/><rect x="${p.cx-74}" y="${396+p.dy}" width="30" height="8" rx="1.5" fill="#FFFDF7" stroke="#C9BFAE"/></g>`}
   return desk(p.cx,p.dy,m,cls,extra)}).join('');
  let walker='';
- if(act){const a=pos[act.from],b=pos[act.to],m=by(act.from),sx=b.cx>=a.cx?1:-1;
+ if(act&&!played){const a=pos[act.from],b=pos[act.to],m=by(act.from),sx=b.cx>=a.cx?1:-1;
   const vars=`--sx:${sx};--rx:${-sx};--x1:${30*sx}px;--y1:104px;--x2:${b.cx-a.cx-50*sx}px;--y2:${b.dy-a.dy+104}px`;
   walker=`<g class="hit" data-open="${esc(m.id)}" tabindex="-1" aria-hidden="true"><g class="walker" style="${vars}">${chip(m,{attrs:`x="${a.cx-76}" y="${288+a.dy}" width="150" height="139"`,tool:'letters',walk:true,state:'working'})}</g></g>`;
  }
@@ -290,7 +295,8 @@ function office(){
  ${desks}${walker}
 </svg>`;
  let cap='';
- if(act){const a=by(act.from),b=by(act.to),w=esc(act.what||'работу');
+ if(act&&played){const b=by(act.to),w=esc(act.what||'работу');cap=`<div class="caption"><span class="c3 done">Сейчас: <b>${esc(b.name)}</b> работает над «${w}»</span></div>`}
+ else if(act){const a=by(act.from),b=by(act.to),w=esc(act.what||'работу');
   cap=`<div class="caption" aria-hidden="true"><span class="c1">Сейчас: <b>${esc(a.name)}</b> готовит «${w}»</span><span class="c2">Сейчас: <b>${esc(a.name)}</b> несёт «${w}» → <b>${esc(b.name)}</b></span><span class="c3">Сейчас: <b>${esc(b.name)}</b> получил «${w}» и берётся за работу</span></div>`}
  const html=`<div class="office-wrap">${svg}</div>${cap}`;
  return `<div data-keep="office" data-h="${hash(html)}" style="display:grid;gap:14px">${html}</div>`;

@@ -260,11 +260,11 @@ a.btn{color:inherit;text-decoration:none;display:inline-block;width:max-content}
 .office .scr-bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow 1.8s ease-in-out infinite alternate}
 .office .scr-bar.b2{animation-delay:.5s}.office .scr-bar.b3{animation-delay:1s}
 @keyframes tap{from{transform:translateY(0)}to{transform:translateY(2.5px)}}
-.chip .pupils{transition:transform .6s}
-.chip.gaze-r.st-working .pupils{transform:translateX(2.6px) translateY(1.2px)}
+.chip .pupils{transform-box:view-box;transform-origin:60px 50px;transition:transform .6s}
+.chip.gaze-r.st-working .pupils{transform:translate(1.6px,.8px)}
 .chip.gaze-r.st-working .head{animation:screenlook 3.2s ease-in-out infinite}
 .chip.tool-pen.st-working .head{animation:write 2.8s ease-in-out infinite}
-.chip.tool-pen.st-working .pupils{transform:translateY(4px) scale(1,.8)}
+.chip.tool-pen.st-working .pupils{transform:translateY(2.2px)}
 .chip.tool-pen.st-working .arm{animation:scribble .42s ease-in-out infinite alternate}
 .chip.tool-pen.st-working .armL{animation:none}
 .chip.st-resting.tool-pen .arm{transform:none}

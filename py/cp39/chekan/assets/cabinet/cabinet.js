@@ -2,7 +2,8 @@
 const FURS=['#B8743C','#9C6436','#C98B4E','#7E5A3C','#D2A06A','#8E7A66','#A85A3A','#6F6A60'];
 const HATS=[['none','Без шапки'],['hardhat','Каска'],['cap','Кепка'],['beret','Берет']];
 const HAT_KEYS=HATS.map(h=>h[0]);
-const TOOLS_OK=['typing','pointer','chart','abacus','scroll','magnifier','letters'];
+const TOOLS_OK=['typing','pointer','chart','abacus','scroll','magnifier','letters','pen'];
+const PC_TOOLS=['typing','chart','pointer','magnifier'];
 const STATE={working:'Работает',waiting:'Ждёт',resting:'Отдыхает'};
 const TABS=[['office','Кабинет'],['chat','Чат'],['progress','Ход работы'],['questions','Вопросы'],['results','Результаты'],['team','Команда'],['spend','Расход'],['log','Журнал']];
 const TASK_ST={pending:['resting','В очереди'],'in-progress':['working','В работе'],review:['waiting','На проверке'],repair:['waiting','На доработке'],done:['working','Готово'],failed:['waiting','Не получилось']};
@@ -36,7 +37,7 @@ function chip(m,opt={}){
  const label=esc(`${m.name||''}${m.role?', '+m.role:''}: ${STATE[s].toLowerCase()}`);
  const eyes=s==='resting'
   ?`<path d="M47 51 Q51 54.5 55 51" fill="none" stroke="${o}" stroke-width="2.4" stroke-linecap="round"/><path d="M65 51 Q69 54.5 73 51" fill="none" stroke="${o}" stroke-width="2.4" stroke-linecap="round"/>`
-  :`<circle cx="51" cy="50" r="3.6" fill="${o}"/><circle cx="69" cy="50" r="3.6" fill="${o}"/><circle cx="52.2" cy="48.8" r="1.2" fill="#fff"/><circle cx="70.2" cy="48.8" r="1.2" fill="#fff"/>`;
+  :`<g class="pupils"><circle cx="51" cy="50" r="3.6" fill="${o}"/><circle cx="69" cy="50" r="3.6" fill="${o}"/><circle cx="52.2" cy="48.8" r="1.2" fill="#fff"/><circle cx="70.2" cy="48.8" r="1.2" fill="#fff"/></g>`;
  const hats={none:'',
   hardhat:`<path d="M37 37 Q38 13 60 13 Q82 13 83 37 Z" fill="#F2C230" ${sw}/><rect x="33" y="34" width="54" height="6" rx="3" fill="#E0AE1C" ${sw}/><path d="M60 14 V34" stroke="#C9970F" stroke-width="3"/>`,
   cap:`<path d="M39 35 Q40 16 60 16 Q80 16 81 35 Z" fill="#3E6FA8" ${sw}/><path d="M78 33 Q92 31 96 36 Q86 39 76 37 Z" fill="#335E91" ${sw}/>`,
@@ -46,6 +47,10 @@ function chip(m,opt={}){
   case 'typing':
    armPath='M77 80 Q83 92 76 101';hand=[76,101];
    leftArm=`<g class="armL"><path d="M43 80 Q37 92 44 101" fill="none" stroke="${o}" stroke-width="11.5" stroke-linecap="round"/><path d="M43 80 Q37 92 44 101" fill="none" stroke="${f}" stroke-width="7" stroke-linecap="round"/><circle cx="44" cy="101" r="4.6" fill="${d}" stroke="${o}" stroke-width="2"/></g>`;break;
+  case 'pen':
+   armPath='M77 80 Q88 95 80 106';hand=[80,106];
+   tl2=`<line x1="80" y1="106" x2="93" y2="95" stroke="#1D2620" stroke-width="2.8" stroke-linecap="round"/><circle cx="93" cy="95" r="1.8" fill="#C9A227"/>`;
+   leftArm=`<g class="armL"><path d="M43 80 Q37 94 46 104" fill="none" stroke="${o}" stroke-width="11.5" stroke-linecap="round"/><path d="M43 80 Q37 94 46 104" fill="none" stroke="${f}" stroke-width="7" stroke-linecap="round"/><circle cx="46" cy="104" r="4.6" fill="${d}" stroke="${o}" stroke-width="2"/></g>`;break;
   case 'letters':
    tl2=`<g class="carry"><rect x="85" y="47" width="26" height="17" rx="2" fill="#FBF7EE" ${sw}/><path d="M85 47 L98 57 L111 47" fill="none" stroke="${o}" stroke-width="1.6"/><rect x="88" y="41" width="26" height="17" rx="2" fill="#FFFDF7" ${sw}/><path d="M88 41 L101 51 L114 41" fill="none" stroke="${o}" stroke-width="1.6"/></g>`;break;
   case 'magnifier':
@@ -63,7 +68,7 @@ function chip(m,opt={}){
  const extra=s==='waiting'
   ?`<g class="qmark"><circle cx="100" cy="18" r="11" fill="var(--wait)" stroke="${o}" stroke-width="2"/><text x="100" y="23.5" font-size="15" font-weight="700" text-anchor="middle" fill="#fff" ${fnt}>?</text></g>`
   :s==='resting'?`<text class="zz" x="84" y="30" font-size="13" font-weight="700" fill="var(--rest)" ${fnt}>z</text><text class="zz z2" x="92" y="22" font-size="10" font-weight="700" fill="var(--rest)" ${fnt}>z</text>`:'';
- const walk=opt.walk?' walking':'';
+ const walk=(opt.walk?' walking':'')+(opt.gaze?' gaze-'+opt.gaze:'');
  if(pic) return `<svg class="chip custom st-${s}${walk}" viewBox="0 0 140 130" style="--d:${delay}s" ${opt.attrs||''} role="img" aria-label="${label}"><g class="bodyg"><image href="${esc(pic)}" x="10" y="14" width="120" height="112" preserveAspectRatio="xMidYMax meet"/>${tl==='letters'?'<g transform="translate(-4 30)">'+tl2+'</g>':''}</g>${extra}</svg>`;
  return `<svg class="chip tool-${tl} st-${s}${walk}" viewBox="0 0 140 130" style="--d:${delay}s" ${opt.attrs||''} role="img" aria-label="${label}">
  <g class="bodyg">
@@ -213,8 +218,20 @@ function screen(m,x,y){
  if(s==='waiting')inner+=`<circle cx="${x+48}" cy="${y+28}" r="6" fill="var(--wait)"/>`;
  return `<rect x="${x-3}" y="${y-3}" width="${W+6}" height="${H+6}" rx="4" fill="#2D3640"/><rect x="${x}" y="${y}" width="${W}" height="${H}" fill="${bg}"/>${inner}<rect x="${x+25}" y="${y+H+3}" width="8" height="12" fill="#55606A"/><rect x="${x+15}" y="${y+H+14}" width="28" height="4" rx="2" fill="#55606A"/>`;
 }
+function monitorBack(cx,dy,s){
+ const x=cx+30,y=357+dy,on=s==='working';
+ return `<path d="M${x} ${y-4} L${x+52} ${y+2} L${x+52} ${y+36} L${x} ${y+42} Z" fill="#2D3640" stroke="#1D2620" stroke-width="2" stroke-linejoin="round"/>${on?`<path class="glow" d="M${x} ${y-4} L${x-6} ${y-2} L${x-6} ${y+40} L${x} ${y+42} Z" fill="#BFE3FF" opacity=".55"/>`:''}<path d="M${x+4} ${y} L${x+48} ${y+5}" stroke="#55606A" stroke-width="2"/><circle cx="${x+27}" cy="${y+19}" r="3.5" fill="${on?'#9FD8B4':'#55606A'}"/><rect x="${x+21}" y="${y+40}" width="8" height="11" fill="#55606A"/><rect x="${x+11}" y="${y+50}" width="28" height="4" rx="2" fill="#55606A"/>`;
+}
+function papers(cx,dy,s){
+ const on=s==='working',y=400+dy,ink=on?' class="ink"':'';
+ return `<path d="M${cx-46} ${y+14} L${cx-40} ${y} L${cx+10} ${y} L${cx+14} ${y+14} Z" fill="#FBF7EE" stroke="#C9BFAE"/>
+  <path${ink} d="M${cx-36} ${y+4} H${cx+4}" stroke="#5C6A61" stroke-width="1.4"/><path${ink} d="M${cx-38} ${y+8} H${cx+6}" stroke="#5C6A61" stroke-width="1.4" style="animation-delay:1s"/><path${ink} d="M${cx-40} ${y+12} H${cx-6}" stroke="#2F5FA8" stroke-width="1.6" style="animation-delay:2s"/>
+  <rect x="${cx+30}" y="${y-4}" width="34" height="5" rx="1" fill="#FFFDF7" stroke="#C9BFAE"/><rect x="${cx+32}" y="${y+1}" width="34" height="5" rx="1" fill="#FBF7EE" stroke="#C9BFAE"/><rect x="${cx+29}" y="${y+6}" width="34" height="5" rx="1" fill="#FFFDF7" stroke="#C9BFAE"/>
+  <rect x="${cx+44}" y="${y-30}" width="4" height="26" fill="#55606A"/><path d="M${cx+34} ${y-30} L${cx+58} ${y-30} L${cx+52} ${y-42} L${cx+40} ${y-42} Z" fill="#2B8556" stroke="#1D2620" stroke-width="1.5"/>${on?`<path d="M${cx+34} ${y-30} L${cx+18} ${y+12} L${cx+70} ${y+12} L${cx+58} ${y-30} Z" fill="#FFE9A8" opacity=".22"/>`:''}`;
+}
 function desk(cx,dy,m,cls,extra){
- const ch=chip(m,{attrs:`x="${cx-76}" y="${288+dy}" width="150" height="139"`,tool:'typing'});
+ const pc=PC_TOOLS.includes(tool(m.tool)),s=st(m.state);
+ const ch=chip(m,{attrs:`x="${cx-76}" y="${288+dy}" width="150" height="139"`,tool:pc?'typing':'pen',gaze:pc?'r':''});
  return `<g class="hit" data-open="${esc(m.id)}" tabindex="0" role="button" aria-label="Открыть карточку: ${esc(m.name)}">
   ${cloudSvg(cx-4,254+dy,m.spec||m.role||'')}
   <rect x="${cx-44}" y="${318+dy}" width="80" height="100" rx="16" fill="var(--chair)"/>
@@ -222,8 +239,7 @@ function desk(cx,dy,m,cls,extra){
   <rect x="${cx-88}" y="${414+dy}" width="176" height="12" rx="3" fill="var(--desk)"/>
   <rect x="${cx-80}" y="${426+dy}" width="160" height="66" rx="3" fill="var(--desk2)"/>
   <rect x="${cx-78}" y="${492+dy}" width="10" height="22" fill="var(--desk2)"/><rect x="${cx+68}" y="${492+dy}" width="10" height="22" fill="var(--desk2)"/>
-  ${screen(m,cx+30,357+dy)}
-  <rect x="${cx-36}" y="${406+dy}" width="58" height="8" rx="2" fill="#C9CED3" stroke="#8C949B"/>
+  ${pc?`${monitorBack(cx,dy,s)}<rect x="${cx-36}" y="${406+dy}" width="58" height="8" rx="2" fill="#C9CED3" stroke="#8C949B"/>`:papers(cx,dy,s)}
   ${extra||''}
   ${plate(cx,452+dy,m)}
  </g>`;
@@ -260,12 +276,15 @@ function office(){
  <rect width="1200" height="380" fill="var(--wall)"/><rect y="324" width="1200" height="56" fill="var(--wall2)"/><rect y="320" width="1200" height="5" fill="var(--trim)"/>
  <rect y="380" width="1200" height="${H-380}" fill="var(--wood)"/>${planks.join('')}
  <rect x="36" y="36" width="178" height="156" rx="6" fill="var(--trim)"/><rect x="46" y="46" width="158" height="136" fill="url(#sky)"/>
- <path d="M80 92 q8 -14 22 -6 q12 -10 24 2 q12 0 10 12 h-60 q-6 -8 4 -8 Z" fill="#FFFFFF" opacity=".85"/>
+ <g class="stars" fill="#FFF8DC"><circle cx="64" cy="62" r="1.4"/><circle cx="100" cy="76" r="1.1"/><circle cx="150" cy="58" r="1.3"/><circle cx="186" cy="96" r="1.2"/><circle cx="76" cy="140" r="1.1"/><circle cx="170" cy="150" r="1.4"/><circle cx="110" cy="160" r="1"/></g>
+ <g class="moon"><circle cx="176" cy="72" r="13" fill="#F4ECC8"/><circle cx="182" cy="67" r="11" fill="var(--sky1)"/></g>
+ <circle class="sun" cx="172" cy="74" r="13" fill="#FFD25A"/>
+ <path class="cloud" d="M80 92 q8 -14 22 -6 q12 -10 24 2 q12 0 10 12 h-60 q-6 -8 4 -8 Z" fill="#FFFFFF" opacity=".85"/>
  <rect x="122" y="46" width="6" height="136" fill="var(--trim)"/><rect x="46" y="112" width="158" height="6" fill="var(--trim)"/><rect x="28" y="190" width="194" height="10" rx="3" fill="var(--trim)"/>
  <rect x="470" y="34" width="276" height="176" rx="8" fill="var(--board)" stroke="var(--trim)" stroke-width="5"/>
  <text x="490" y="64" font-size="16" font-weight="700" fill="var(--ink)">План проекта</text>${whiteboard()}
  <circle cx="990" cy="95" r="34" fill="var(--board)" stroke="var(--trim)" stroke-width="5"/>${clock}
- <line x1="990" y1="95" x2="981" y2="79" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><line x1="990" y1="95" x2="995.5" y2="70" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/><circle cx="990" cy="95" r="3" fill="var(--ink)"/>
+ <line class="hh" x1="990" y1="95" x2="990" y2="77" stroke="var(--ink)" stroke-width="4" stroke-linecap="round"/><line class="mh" x1="990" y1="95" x2="990" y2="69" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"/><circle cx="990" cy="95" r="3" fill="var(--ink)"/>
  <rect x="1036" y="176" width="150" height="8" rx="2" fill="var(--trim)"/>
  <rect x="1044" y="134" width="16" height="42" fill="#2F5FA8"/><rect x="1062" y="140" width="16" height="36" fill="#B8743C"/><rect x="1080" y="130" width="16" height="46" fill="#2B8556"/><rect x="1110" y="146" width="40" height="30" rx="3" fill="#F2F2EE"/>
  ${desks}${walker}
@@ -276,6 +295,17 @@ function office(){
  const html=`<div class="office-wrap">${svg}</div>${cap}`;
  return `<div data-keep="office" data-h="${hash(html)}" style="display:grid;gap:14px">${html}</div>`;
 }
+function daytime(h){return h<5||h>=21?'night':h<8?'dawn':h<17?'day':'evening'}
+function tick(){
+ const now=new Date(),h=now.getHours(),mi=now.getMinutes();
+ document.querySelectorAll('svg.office').forEach(o=>{
+  o.dataset.tod=daytime(h);
+  const hh=o.querySelector('.hh'),mh=o.querySelector('.mh');
+  if(hh)hh.setAttribute('transform',`rotate(${(h%12)*30+mi*0.5} 990 95)`);
+  if(mh)mh.setAttribute('transform',`rotate(${mi*6} 990 95)`);
+ });
+}
+setInterval(tick,20000);
 function roomSwitch(){
  const rs=rooms();if(rs.length<2)return '';
  const q=new Set(openQs().map(x=>x.m&&x.m.id));
@@ -542,6 +572,7 @@ function render(fresh){
  const vals=fresh?{}:keepInputs(v),y=window.scrollY;
  v.innerHTML=html;
  if(!fresh)v.querySelectorAll('[data-keep]').forEach(n=>{const o=keep[n.dataset.keep];if(o&&o.dataset.h===n.dataset.h)n.replaceWith(o)});
+ tick();
  restoreInputs(v,vals);
  if(!fresh)window.scrollTo(0,y);
  const oc=$('#ochat');if(oc){const n=(P().inbox||[]).length;if(fresh||n!==S.lastInbox)oc.scrollTop=oc.scrollHeight;S.lastInbox=n}

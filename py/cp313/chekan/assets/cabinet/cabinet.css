@@ -258,6 +258,31 @@ a.btn{color:inherit;text-decoration:none;display:inline-block;width:max-content}
 .office .scr-bar{transform-box:fill-box;transform-origin:50% 100%;animation:grow 1.8s ease-in-out infinite alternate}
 .office .scr-bar.b2{animation-delay:.5s}.office .scr-bar.b3{animation-delay:1s}
 @keyframes tap{from{transform:translateY(0)}to{transform:translateY(2.5px)}}
+.chip .pupils{transition:transform .6s}
+.chip.gaze-r.st-working .pupils{transform:translateX(2.6px) translateY(1.2px)}
+.chip.gaze-r.st-working .head{animation:screenlook 3.2s ease-in-out infinite}
+.chip.tool-pen.st-working .head{animation:write 2.8s ease-in-out infinite}
+.chip.tool-pen.st-working .pupils{transform:translateY(2.4px)}
+.chip.tool-pen.st-working .arm{animation:scribble .45s ease-in-out infinite alternate}
+.chip.tool-pen.st-working .armL{animation:none}
+.chip.st-resting.tool-pen .arm{transform:none}
+.office .ink{stroke-dasharray:46;stroke-dashoffset:46;animation:inkdraw 3.2s linear infinite}
+.office .glow{animation:fire 2.4s ease-in-out infinite alternate}
+@keyframes write{0%,100%{transform:translateY(11px) rotate(3deg) scale(1,.97)}50%{transform:translateY(13px) rotate(6deg) scale(1,.97)}}
+@keyframes screenlook{0%,100%{transform:rotate(5deg) translateX(2px)}50%{transform:rotate(7deg) translateX(3px) translateY(1px)}}
+@keyframes scribble{from{transform:translate(0,0)}to{transform:translate(-4px,1.5px)}}
+@keyframes inkdraw{0%{stroke-dashoffset:46}70%,100%{stroke-dashoffset:0}}
+.office .stars,.office .moon,.office .sun{display:none}
+.office[data-tod="night"]{--sky1:#0E1A33;--sky2:#23335A}
+.office[data-tod="night"] .stars,.office[data-tod="night"] .moon{display:inline}
+.office[data-tod="night"] .cloud{opacity:.15}
+.office[data-tod="dawn"]{--sky1:#F3A98A;--sky2:#FBE3C4}
+.office[data-tod="dawn"] .sun{display:inline;transform:translateY(70px)}
+.office[data-tod="day"]{--sky1:#8CC8EA;--sky2:#E3F3FA}
+.office[data-tod="day"] .sun{display:inline}
+.office[data-tod="evening"]{--sky1:#C9694A;--sky2:#6E5A8C}
+.office[data-tod="evening"] .sun{display:inline;transform:translateY(80px);fill:#FF9E4A}
+@media (prefers-reduced-motion:reduce){.office .ink{animation:none;stroke-dashoffset:0}}
 @keyframes blinkc{50%{opacity:0}}
 .chip .legL,.chip .legR{transform-box:view-box;transform-origin:60px 115px}
 .chip.st-working .head{animation:nod 2.4s ease-in-out infinite}

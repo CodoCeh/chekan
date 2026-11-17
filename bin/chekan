@@ -1,6 +1,8 @@
 #!/bin/sh
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-exec python3 -c '
+PY=python3
+case "$(uname -s)" in MINGW*|MSYS*|CYGWIN*) PY=python ;; esac
+exec "$PY" -c '
 import os, sys
 root = sys.argv.pop(1)
 if os.path.isdir(os.path.join(root, "py")):

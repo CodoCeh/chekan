@@ -3,11 +3,11 @@
     "enabled": true,
     "PreToolUse": [
       {
-        "matcher": "write_to_file|replace_file_content|multi_replace_file_content|edit_file",
+        "matcher": "write_file|write_to_file|replace_file_content|multi_replace_file_content|edit_file",
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ./hooks/chekan_hook.py",
+            "command": "python3 ./hooks/chekan_hook.py --agent antigravity",
             "timeout": 15
           }
         ]
@@ -17,16 +17,16 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 ./hooks/chekan_hook.py",
+            "command": "python3 ./hooks/chekan_hook.py --agent antigravity",
             "timeout": 30
           }
         ]
       }
     ],
-    "PreInvocation": [
+    "SessionStart": [
       {
         "type": "command",
-        "command": "python3 ./hooks/chekan_hook.py",
+        "command": "python3 ./hooks/chekan_hook.py --agent antigravity",
         "timeout": 15
       }
     ]

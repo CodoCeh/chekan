@@ -332,6 +332,10 @@ a.btn{color:inherit;text-decoration:none;display:inline-block;width:max-content}
 .hit:hover .chip,.hit:focus-visible .chip{filter:drop-shadow(0 0 6px var(--accent))}
 .office .fire{animation:fire 1.3s ease-in-out infinite alternate}
 .office .screen{animation:fire 2.2s ease-in-out infinite alternate}
+.office .kf{opacity:0;animation:kf 1.3s steps(1) infinite}
+@keyframes kf{0%,100%{opacity:0}8%,22%{opacity:.9}}
+.office .glyph{opacity:0;font-family:var(--f-body);animation:glyph 3.3s ease-out infinite}
+@keyframes glyph{0%{opacity:0;transform:translate(0,0)}15%{opacity:.85}100%{opacity:0;transform:translate(8px,-34px)}}
 @keyframes fire{from{opacity:.75}to{opacity:1}}
 .office .walker{opacity:0;transform-box:fill-box;transform-origin:center;animation:walker 14s linear 1 forwards}
 .office .walker .carry{animation:carry 14s linear 1 forwards}
@@ -341,6 +345,11 @@ a.btn{color:inherit;text-decoration:none;display:inline-block;width:max-content}
 .office .sync .qmark{animation:qhide 14s linear 1 forwards}
 .paused .walker,.paused .handstack,.paused .caption{display:none}
 .paused .away{animation:none!important;opacity:1!important}
+.office .flyer{opacity:0;animation:fly 14s linear 1 forwards}
+.office .flyer .env{transform-box:fill-box;transform-origin:center;animation:envtilt 14s linear 1 forwards}
+.paused .flyer{display:none}
+@keyframes fly{0%,37.9%{opacity:0;transform:translate(0,0)}39%{opacity:1;transform:translate(0,-6px)}48.5%{transform:translate(calc(var(--fx)*.5),calc(var(--fy)*.5 - 70px))}59%{opacity:1;transform:translate(var(--fx),var(--fy))}61%,100%{opacity:0;transform:translate(var(--fx),var(--fy))}}
+@keyframes envtilt{0%,38%{transform:rotate(-8deg)}48%{transform:rotate(6deg)}59%,100%{transform:rotate(-4deg)}}
 .caption{display:grid;font-size:15px}
 .caption span{grid-area:1/1;opacity:0}
 .caption .c1{opacity:1;animation:c1 14s linear 1 forwards}
@@ -388,3 +397,17 @@ a.btn{color:inherit;text-decoration:none;display:inline-block;width:max-content}
 .stopmark{position:absolute;transform:translateX(-50%);color:var(--wait);white-space:nowrap}
 .page>*,[data-keep]>*,.phead>*{min-width:0}
 .connbox{max-height:calc(100vh - 120px);overflow-y:auto}
+
+.chip.art image{filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+.chip.art.chg .bodyg>image:first-child{animation:artIn .5s ease-out both}
+.chip.art .fb{opacity:0;animation:artBlink var(--bl,5s) steps(1,end) infinite;animation-delay:var(--bd,0s)}
+.chip.art .f2{opacity:0;animation:artType 2.1s steps(1,end) infinite;animation-delay:var(--bd,0s)}
+.chip.art.pose-pen .f2{animation:artPen 2.6s steps(1,end) infinite;animation-delay:var(--bd,0s)}
+@keyframes artBlink{0%,95%{opacity:0}96%{opacity:1}99%,100%{opacity:0}}
+@keyframes artType{0%{opacity:0}11%{opacity:1}23%{opacity:0}30%{opacity:1}44%{opacity:0}57%{opacity:1}65%{opacity:0}79%{opacity:1}90%,100%{opacity:0}}
+@keyframes artPen{0%{opacity:0}38%{opacity:1}55%{opacity:0}78%{opacity:1}93%,100%{opacity:0}}
+@keyframes artIn{from{opacity:0;transform:translateY(3px) scale(.985)}to{opacity:1;transform:none}}
+.arts{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:8px 0}
+.artb{display:flex;flex-direction:column;align-items:center;gap:4px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--card,transparent);color:inherit;font:inherit;font-size:12px;cursor:pointer}
+.artb img,.artb .artsvg svg{width:64px;height:64px;object-fit:contain}
+.artb[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 35%,transparent)}

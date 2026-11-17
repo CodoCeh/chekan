@@ -23,18 +23,32 @@
 
 ## Установка
 
-Нужны Claude Code и Python 3.9–3.14. На Mac Python уже есть.
+Нужен Python 3.9–3.14. На Mac и в Linux он обычно уже есть, на Windows его ставят с python.org или командой `winget install Python.Python.3.12`.
 
-В терминале:
+Mac и Linux, в терминале:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/CodoCeh/chekan/main/install.sh | sh
+```
+
+Windows, в PowerShell:
+
+```powershell
+irm https://raw.githubusercontent.com/CodoCeh/chekan/main/install.ps1 | iex
+```
+
+Установщик найдёт агентов, которые стоят на компьютере (Claude Code, Codex, Cursor, Antigravity, opencode), и спросит, в какие из них поставить Чекан. Номера через запятую, Enter — во все.
+
+Обновить Чекан — запустить ту же команду ещё раз. Ваши уроки ролей, свои роли и настройки лежат отдельно от программы и при обновлении не меняются; перед каждой установкой установщик кладёт их копию в `~/.config/chekan-backups` (последние пять). Новые уроки, которые приходят с обновлением, добавляются к вашим, а не заменяют их.
+
+Только для Claude Code можно и без установщика — в терминале:
 
 ```bash
 claude plugin marketplace add CodoCeh/chekan
 claude plugin install chekan@codoceh --scope user -y
 ```
 
-Или прямо в сессии Claude Code: `/plugin marketplace add CodoCeh/chekan`, затем `/plugin install chekan@codoceh`.
-
-После установки откройте новую сессию Claude Code. Проверить, что всё на месте, можно командой `chekan doctor`.
+После установки откройте новую сессию агента. Проверить, что всё на месте, можно командой `chekan doctor`.
 
 ## Как пользоваться
 
@@ -98,14 +112,9 @@ claude plugin install chekan@codoceh --scope user -y
 
 **Нужно ли знать программирование?** Нет. Пишите так, как поставили бы задачу сотруднику.
 
-**Работает ли с другими помощниками?** Продолжить проект можно в Codex, Cursor или Antigravity: откройте папку проекта и напишите «чекан, продолжай». Для команды `chekan` в обычном терминале и раскладки по этим агентам:
+**Работает ли с другими помощниками?** Да: Claude Code, Codex, Cursor, Antigravity и opencode. Установщик ставит Чекан в те из них, что вы выберете. Начатый проект можно продолжить в любом: откройте папку проекта и напишите «чекан, продолжай».
 
-```bash
-git clone https://github.com/CodoCeh/chekan ~/.chekan-app
-python3 ~/.chekan-app/install.py
-```
-
-**Как обновить?** Команда `chekan update`: она сама скачает новую версию с GitHub и обновит плагин в Claude. Узнать, есть ли новая версия, не обновляя: `chekan update --check`. После обновления откройте новую сессию Claude.
+**Как обновить?** Запустите команду установки ещё раз или `chekan update`: она скачает новую версию с GitHub и обновит плагин в Claude. Узнать, есть ли новая версия, не обновляя: `chekan update --check`. После обновления откройте новую сессию Claude.
 
 ## Команды для терминала
 

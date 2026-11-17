@@ -4,6 +4,11 @@ const HATS=[['none','Без шапки'],['hardhat','Каска'],['cap','Кеп
 const HAT_KEYS=HATS.map(h=>h[0]);
 const TOOLS_OK=['typing','pointer','chart','abacus','scroll','magnifier','letters','pen'];
 const PC_TOOLS=['typing','chart','pointer','magnifier'];
+const ARTS=[['lead','Руководитель'],['office','Офис'],['dev','Разработчик'],['analyst','Аналитик'],['lawyer','Юрист'],['creative','Творческий'],['reviewer','Проверяющий']];
+const ART_KEYS=ARTS.map(a=>a[0]);
+const art=a=>ART_KEYS.includes(a)?a:null;
+const POSE={},LOADED=new Set();
+function preload(t){t.forEach(m=>{const l=art(m.art);if(!l||LOADED.has(l))return;LOADED.add(l);['idle','pc','pen','wait','sleep','idle-b','pc-b','pen-b','wait-b','pc-2','pen-2'].forEach(p=>{const i=new Image();i.src=`/cabinet/art-${l}-${p}.webp`})})}
 const STATE={working:'Работает',waiting:'Ждёт',resting:'Отдыхает'};
 const TABS=[['office','Кабинет'],['chat','Чат'],['progress','Ход работы'],['questions','Вопросы'],['results','Результаты'],['team','Команда'],['spend','Расход'],['log','Журнал']];
 const TASK_ST={pending:['resting','В очереди'],'in-progress':['working','В работе'],review:['waiting','На проверке'],repair:['waiting','На доработке'],done:['working','Готово'],failed:['waiting','Не получилось']};
@@ -69,6 +74,16 @@ function chip(m,opt={}){
   ?`<g class="qmark"><circle cx="100" cy="18" r="11" fill="var(--wait)" stroke="${o}" stroke-width="2"/><text x="100" y="23.5" font-size="15" font-weight="700" text-anchor="middle" fill="#fff" ${fnt}>?</text></g>`
   :s==='resting'?`<text class="zz" x="84" y="30" font-size="13" font-weight="700" fill="var(--rest)" ${fnt}>z</text><text class="zz z2" x="92" y="22" font-size="10" font-weight="700" fill="var(--rest)" ${fnt}>z</text>`:'';
  const walk=(opt.walk?' walking':'')+(opt.gaze?' gaze-'+opt.gaze:'');
+ const look=!pic&&art(m.art);
+ if(look){
+  const pose=s==='resting'?'sleep':s==='waiting'?'wait':opt.walk?'idle':opt.pose||'idle';
+  const lt=tl==='letters'?'<g transform="translate(-2 34)">'+tl2+'</g>':'';
+  const key=String(m.id||m.name||'');
+  let chg='';if(opt.track){chg=POSE[key]&&POSE[key]!==pose?' chg':'';POSE[key]=pose}
+  const h=[...key].reduce((a,c)=>a*31+c.charCodeAt(0)|0,7)>>>0,fr=f=>`<image class="${f}" href="/cabinet/art-${look}-${pose}-${f.slice(1)}.webp" x="4" y="2" width="132" height="128" preserveAspectRatio="xMidYMax meet"/>`;
+  const hands=s==='working'&&(pose==='pc'||pose==='pen')?fr('f2'):'',blink=pose==='sleep'?'':fr('fb');
+  return `<svg class="chip art pose-${pose} st-${s}${walk}${chg}" viewBox="0 0 140 130" style="--d:${delay}s;--bl:${(4.2+h%25/10).toFixed(1)}s;--bd:-${(h%37/10).toFixed(1)}s" ${opt.attrs||''} role="img" aria-label="${label}"><g class="bodyg"><image href="/cabinet/art-${look}-${pose}.webp" x="4" y="2" width="132" height="128" preserveAspectRatio="xMidYMax meet"/>${hands}${blink}${lt}</g>${extra}</svg>`;
+ }
  if(pic) return `<svg class="chip custom st-${s}${walk}" viewBox="0 0 140 130" style="--d:${delay}s" ${opt.attrs||''} role="img" aria-label="${label}"><g class="bodyg"><image href="${esc(pic)}" x="10" y="14" width="120" height="112" preserveAspectRatio="xMidYMax meet"/>${tl==='letters'?'<g transform="translate(-4 30)">'+tl2+'</g>':''}</g>${extra}</svg>`;
  return `<svg class="chip tool-${tl} st-${s}${walk}" viewBox="0 0 140 130" style="--d:${delay}s" ${opt.attrs||''} role="img" aria-label="${label}">
  <g class="bodyg">
@@ -218,28 +233,34 @@ function screen(m,x,y){
  if(s==='waiting')inner+=`<circle cx="${x+48}" cy="${y+28}" r="6" fill="var(--wait)"/>`;
  return `<rect x="${x-3}" y="${y-3}" width="${W+6}" height="${H+6}" rx="4" fill="#2D3640"/><rect x="${x}" y="${y}" width="${W}" height="${H}" fill="${bg}"/>${inner}<rect x="${x+25}" y="${y+H+3}" width="8" height="12" fill="#55606A"/><rect x="${x+15}" y="${y+H+14}" width="28" height="4" rx="2" fill="#55606A"/>`;
 }
-function monitorBack(cx,dy,s){
- const x=cx+30,y=357+dy,on=s==='working';
- return `<path d="M${x} ${y-4} L${x+52} ${y+2} L${x+52} ${y+36} L${x} ${y+42} Z" fill="#2D3640" stroke="#1D2620" stroke-width="2" stroke-linejoin="round"/>${on?`<path class="glow" d="M${x} ${y-4} L${x-6} ${y-2} L${x-6} ${y+40} L${x} ${y+42} Z" fill="#BFE3FF" opacity=".55"/>`:''}<path d="M${x+4} ${y} L${x+48} ${y+5}" stroke="#55606A" stroke-width="2"/><circle cx="${x+27}" cy="${y+19}" r="3.5" fill="${on?'#9FD8B4':'#55606A'}"/><rect x="${x+21}" y="${y+40}" width="8" height="11" fill="#55606A"/><rect x="${x+11}" y="${y+50}" width="28" height="4" rx="2" fill="#55606A"/>`;
+function monitorBack(cx,dy,s,art){
+ const x=cx+30,y=357+dy,on=s==='working'&&!art;
+ return `<path d="M${x} ${y-4} L${x+52} ${y+2} L${x+52} ${y+36} L${x} ${y+42} Z" fill="#2D3640" stroke="#1D2620" stroke-width="2" stroke-linejoin="round"/>${on?`<path class="glow" d="M${x} ${y-4} L${x-6} ${y-2} L${x-6} ${y+40} L${x} ${y+42} Z" fill="#BFE3FF" opacity=".55"/>`:''}<path d="M${x+4} ${y} L${x+48} ${y+5}" stroke="#55606A" stroke-width="2"/><g transform="translate(${x} ${y})"><g transform="translate(.45 .55)" fill="#1A2027" stroke="#1A2027"><path d="M19.7 18.1 24.7 17.6 39.0 17.8 39.0 20.6 36.1 20.6 35.1 20.9 34.6 21.6 34.4 22.5 36.1 24.6 37.8 24.5 37.8 26.5 24.2 27.1 24.2 25.0 26.1 24.9 28.0 22.7 27.8 21.7 27.2 21.0 26.1 20.7 24.7 20.7 22.8 20.3 21.1 19.4 19.7 18.1Z" stroke-width=".4"/><path d="M29.4 11.2 27.2 12.6 29.4 14.3 M33.1 11.3 35.2 12.9 33.1 14.4" fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></g><g class="mark" fill="${on?'#4CCB98':'#47525C'}" stroke="${on?'#4CCB98':'#47525C'}"><path d="M19.7 18.1 24.7 17.6 39.0 17.8 39.0 20.6 36.1 20.6 35.1 20.9 34.6 21.6 34.4 22.5 36.1 24.6 37.8 24.5 37.8 26.5 24.2 27.1 24.2 25.0 26.1 24.9 28.0 22.7 27.8 21.7 27.2 21.0 26.1 20.7 24.7 20.7 22.8 20.3 21.1 19.4 19.7 18.1Z" stroke-width=".4"/><path d="M29.4 11.2 27.2 12.6 29.4 14.3 M33.1 11.3 35.2 12.9 33.1 14.4" fill="none" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></g></g><circle cx="${x+45}" cy="${y+31}" r="1.8" fill="${on?'#9FD8B4':'#55606A'}"/><rect x="${x+21}" y="${y+40}" width="8" height="11" fill="#55606A"/><rect x="${x+11}" y="${y+50}" width="28" height="4" rx="2" fill="#55606A"/>`;
 }
-function papers(cx,dy,s){
+function papers(cx,dy,s,art){
  const on=s==='working',y=404+dy,ink=on?' class="ink"':'';
  return `<path d="M${cx-46} ${y+10} L${cx-40} ${y} L${cx+10} ${y} L${cx+14} ${y+10} Z" fill="#FBF7EE" stroke="#C9BFAE"/>
   <path${ink} d="M${cx-36} ${y+3} H${cx+4}" stroke="#5C6A61" stroke-width="1.3"/><path${ink} d="M${cx-38} ${y+6} H${cx+6}" stroke="#5C6A61" stroke-width="1.3" style="animation-delay:1s"/><path${ink} d="M${cx-40} ${y+9} H${cx-6}" stroke="#2F5FA8" stroke-width="1.5" style="animation-delay:2s"/>
   <rect x="${cx+30}" y="${y-4}" width="34" height="5" rx="1" fill="#FFFDF7" stroke="#C9BFAE"/><rect x="${cx+32}" y="${y+1}" width="34" height="5" rx="1" fill="#FBF7EE" stroke="#C9BFAE"/><rect x="${cx+29}" y="${y+6}" width="34" height="5" rx="1" fill="#FFFDF7" stroke="#C9BFAE"/>
-  <rect x="${cx+44}" y="${y-30}" width="4" height="26" fill="#55606A"/><path d="M${cx+34} ${y-30} L${cx+58} ${y-30} L${cx+52} ${y-42} L${cx+40} ${y-42} Z" fill="#2B8556" stroke="#1D2620" stroke-width="1.5"/>${on?`<path d="M${cx+34} ${y-30} L${cx+18} ${y+12} L${cx+70} ${y+12} L${cx+58} ${y-30} Z" fill="#FFE9A8" opacity=".22"/>`:''}`;
+  <rect x="${cx+44}" y="${y-30}" width="4" height="26" fill="#55606A"/><path d="M${cx+34} ${y-30} L${cx+58} ${y-30} L${cx+52} ${y-42} L${cx+40} ${y-42} Z" fill="#2B8556" stroke="#1D2620" stroke-width="1.5"/>${on&&!art?`<path d="M${cx+34} ${y-30} L${cx+18} ${y+12} L${cx+70} ${y+12} L${cx+58} ${y-30} Z" fill="#FFE9A8" opacity=".22"/>`:''}`;
 }
+function typing(cx,dy){
+ const keys=[-30,-18,-6,6,14].map((x,i)=>`<rect class="kf" x="${cx+x}" y="${408+dy}" width="7" height="4" rx="1" fill="#7FD3B0" style="animation-delay:${(i*.37)%1.3}s"/>`).join('');
+ const gl=['</>','{ }','01'].map((g,i)=>`<text class="glyph" x="${cx+44+i*6}" y="${352+dy}" font-size="11" font-weight="700" fill="var(--accent)" style="animation-delay:${i*1.1}s">${g}</text>`).join('');
+ return keys+gl;
+}
+const flies=m=>!img(m.img)&&!!art(m.art);
 function desk(cx,dy,m,cls,extra){
  const pc=PC_TOOLS.includes(tool(m.tool)),s=st(m.state);
- const ch=chip(m,{attrs:`x="${cx-76}" y="${288+dy}" width="150" height="139"`,tool:pc?'typing':'pen',gaze:pc?'r':''});
+ const ch=chip(m,{attrs:`x="${cx-76}" y="${288+dy+(pc&&flies(m)?14:0)}" width="150" height="139"`,tool:pc?'typing':'pen',gaze:pc?'r':'',pose:pc?'pc':'pen',track:true});
  return `<g class="hit" data-open="${esc(m.id)}" tabindex="0" role="button" aria-label="Открыть карточку: ${esc(m.name)}">
   ${cloudSvg(cx-4,254+dy,m.spec||m.role||'')}
-  <rect x="${cx-44}" y="${318+dy}" width="80" height="100" rx="16" fill="var(--chair)"/>
+  ${flies(m)?'':`<rect x="${cx-44}" y="${318+dy}" width="80" height="100" rx="16" fill="var(--chair)"/>`}
   <g${cls?` class="${cls}"`:''}>${ch}</g>
   <rect x="${cx-88}" y="${414+dy}" width="176" height="12" rx="3" fill="var(--desk)"/>
   <rect x="${cx-80}" y="${426+dy}" width="160" height="66" rx="3" fill="var(--desk2)"/>
   <rect x="${cx-78}" y="${492+dy}" width="10" height="22" fill="var(--desk2)"/><rect x="${cx+68}" y="${492+dy}" width="10" height="22" fill="var(--desk2)"/>
-  ${pc?`${monitorBack(cx,dy,s)}<rect x="${cx-36}" y="${406+dy}" width="58" height="8" rx="2" fill="#C9CED3" stroke="#8C949B"/>`:papers(cx,dy,s)}
+  ${pc?`${monitorBack(cx,dy,s,flies(m))}<rect x="${cx-36}" y="${406+dy}" width="58" height="8" rx="2" fill="#C9CED3" stroke="#8C949B"/>${s==='working'?typing(cx,dy):''}`:papers(cx,dy,s,flies(m))}
   ${extra||''}
   ${plate(cx,452+dy,m)}
  </g>`;
@@ -257,6 +278,7 @@ function whiteboard(){
 const PLAYED=(()=>{try{return new Set(JSON.parse(sessionStorage.getItem('chekan-handoffs')||'[]'))}catch(e){return new Set()}})();
 function markPlayed(k){PLAYED.add(k);try{sessionStorage.setItem('chekan-handoffs',JSON.stringify([...PLAYED].slice(-200)))}catch(e){}}
 function office(){
+ preload(team());
  const rs=rooms(),ri=Math.min(S.room,rs.length-1),members=rs[ri];
  const per=NARROW.matches?3:PER_ROW,rowsN=Math.max(1,Math.ceil(members.length/per)),H=580+(rowsN-1)*ROWH;
  const pos={};
@@ -267,13 +289,14 @@ function office(){
  if(act&&!played&&!S.handoffTimer)S.handoffTimer=setTimeout(()=>{S.handoffTimer=null;markPlayed(hkey);if(S.page==='project')render()},14500);
  const planks=[];for(let y=412;y<H;y+=y<530?(y<446?34:y<486?40:44):48)planks.push(`<line x1="0" y1="${y}" x2="1200" y2="${y}" stroke="var(--wood2)" stroke-width="2"/>`);
  const desks=members.map(m=>{const p=pos[m.id];let cls='',extra='';
-  if(act&&!played&&m.id===act.from)cls='away';
+  if(act&&!played&&m.id===act.from&&!flies(m))cls='away';
   if(act&&m.id===act.to){cls=played?'':'sync';extra=`<g class="handstack${played?' done':''}"><rect x="${p.cx-76}" y="${402+p.dy}" width="30" height="12" rx="1.5" fill="#FBF7EE" stroke="#C9BFAE"/><path d="M${p.cx-76} ${402+p.dy} L${p.cx-61} ${410+p.dy} L${p.cx-46} ${402+p.dy}" fill="none" stroke="#C9BFAE"/><rect x="${p.cx-74}" y="${396+p.dy}" width="30" height="8" rx="1.5" fill="#FFFDF7" stroke="#C9BFAE"/></g>`}
   return desk(p.cx,p.dy,m,cls,extra)}).join('');
  let walker='';
  if(act&&!played){const a=pos[act.from],b=pos[act.to],m=by(act.from),sx=b.cx>=a.cx?1:-1;
   const vars=`--sx:${sx};--rx:${-sx};--x1:${30*sx}px;--y1:104px;--x2:${b.cx-a.cx-50*sx}px;--y2:${b.dy-a.dy+104}px`;
-  walker=`<g class="hit" data-open="${esc(m.id)}" tabindex="-1" aria-hidden="true"><g class="walker" style="${vars}">${chip(m,{attrs:`x="${a.cx-76}" y="${288+a.dy}" width="150" height="139"`,tool:'letters',walk:true,state:'working'})}</g></g>`;
+  walker=flies(m)?`<g class="flyer" style="--fx:${b.cx-a.cx-60}px;--fy:${b.dy-a.dy}px" aria-hidden="true"><g class="env"><rect x="${a.cx-14}" y="${372+a.dy}" width="30" height="20" rx="2.5" fill="#FFFDF7" stroke="#8C7B60" stroke-width="1.6"/><path d="M${a.cx-14} ${372+a.dy} L${a.cx+1} ${384+a.dy} L${a.cx+16} ${372+a.dy}" fill="none" stroke="#8C7B60" stroke-width="1.6"/></g></g>`
+   :`<g class="hit" data-open="${esc(m.id)}" tabindex="-1" aria-hidden="true"><g class="walker" style="${vars}">${chip(m,{attrs:`x="${a.cx-76}" y="${288+a.dy}" width="150" height="139"`,tool:'letters',walk:true,state:'working'})}</g></g>`;
  }
  const clock=Array.from({length:12},(_,i)=>{const a=i*Math.PI/6;return `<line x1="${(990+26*Math.sin(a)).toFixed(1)}" y1="${(95-26*Math.cos(a)).toFixed(1)}" x2="${(990+30*Math.sin(a)).toFixed(1)}" y2="${(95-30*Math.cos(a)).toFixed(1)}" stroke="var(--ink)" stroke-width="2"/>`}).join('');
  const svg=`<svg class="office" viewBox="${NARROW.matches?'300 0 620':'0 0 1200'} ${H}" role="img" aria-label="Кабинет команды">
@@ -299,7 +322,7 @@ function office(){
  else if(act){const a=by(act.from),b=by(act.to),w=esc(act.what||'работу');
   cap=`<div class="caption" aria-hidden="true"><span class="c1">Сейчас: <b>${esc(a.name)}</b> готовит «${w}»</span><span class="c2">Сейчас: <b>${esc(a.name)}</b> несёт «${w}» → <b>${esc(b.name)}</b></span><span class="c3">Сейчас: <b>${esc(b.name)}</b> получил «${w}» и берётся за работу</span></div>`}
  const html=`<div class="office-wrap">${svg}</div>${cap}`;
- return `<div data-keep="office" data-h="${hash(html)}" style="display:grid;gap:14px">${html}</div>`;
+ return `<div data-keep="office" data-h="${hash(html.replace(/ chg"/g,'"'))}" style="display:grid;gap:14px">${html}</div>`;
 }
 function daytime(h){return h<5||h>=21?'night':h<8?'dawn':h<17?'day':'evening'}
 function tick(){
@@ -353,7 +376,7 @@ function projectHead(){
   <div class="phrow"><h1>${esc(p.title)}</h1>
    <div class="pact">${p.finished?'':p.paused?`<button class="btn primary" data-pause="0">Продолжить</button>`:`<button class="btn" data-pause="1">Поставить на паузу</button>`}
    <a class="btn" href="#chat">Чат с Бригадиром</a>
-   ${S.access&&S.access.host&&p.continue_url&&!p.finished?`<a class="btn" href="${esc(p.continue_url)}">Продолжить в Claude</a>`:''}
+   ${S.access&&S.access.host&&p.continue&&!p.finished?contBtn(p.continue):''}
    ${p.link?`<button class="btn" data-link="1" aria-expanded="${S.linkOpen}">Ссылка на прогон</button>`:''}</div></div>
   ${S.linkOpen&&p.link?`<div class="linkbox"><div class="lrow"><code id="runlink">${esc(p.link)}</code><button class="btn primary" data-copy="runlink">Скопировать</button></div>
    <p class="hint">Ссылка работает на любом устройстве в вашей сети: на компьютере, КовКоде или телефоне. С другого устройства Чекан спросит пароль и откроет сразу этот прогон.</p></div>`:''}
@@ -362,6 +385,25 @@ function projectHead(){
   ${p.paused?`<div class="pausebar">Пауза${p.paused_since?' с '+esc(hm(p.paused_since)):''}. Новые задачи не раздаются. Продолжить можно в любой момент: кнопкой здесь или фразой «продолжай» в чате с Бригадиром.</div>`:''}
   <nav class="subnav" aria-label="Разделы проекта">${TABS.map(([k,l])=>`<a href="#${k}"${S.tab===k?' aria-current="page"':''}>${l}${k==='questions'&&q?`<span class="badge">${q}</span>`:''}</a>`).join('')}</nav>
  </div>`;
+}
+function contBtn(c){
+ const label=`Продолжить в ${esc(c.app)}`;
+ if(c.url)return `<a class="btn" href="${esc(c.url)}" data-cont="url">${label}</a>`;
+ return `<button class="btn" data-cont="${c.server?'open':'cmd'}">${label}</button>`;
+}
+function copyText(v){
+ if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(v).then(()=>true,()=>false);
+ const ta=document.createElement('textarea');ta.value=v;document.body.appendChild(ta);ta.select();let ok=false;try{ok=document.execCommand('copy')}catch(e){}ta.remove();return Promise.resolve(ok);
+}
+async function continueIn(kind){
+ const c=P().continue;if(!c||kind==='url')return;
+ if(kind==='cmd'){const ok=await copyText(c.cmd);toast(ok?`Команда скопирована. Вставьте её в терминал: откроется ${c.app} в папке проекта${c.typed?`. Затем напишите: «${c.say}»`:''}`:`Выполните в терминале: ${c.cmd}`,!ok);return}
+ const copied=copyText(c.say);
+ try{
+  const r=(await api(slugP()+'/open',{})).json;const ok=await copied;
+  const tail=ok?`Фраза «${c.say}» в буфере обмена — вставьте её в чат.`:`Напишите в чате: «${c.say}».`;
+  toast(r.folder?`${c.app} открывается в папке проекта. ${tail}`:`${c.app} открывается. Выберите в нём папку проекта. ${tail}`);
+ }catch(e){if(!(e instanceof AuthError)){if(c.cmd){const ok=await copyText(c.cmd);toast(ok?`Не открылось само. Команда скопирована — вставьте её в терминал`:e.message,!ok)}else toast(e.message,true)}}
 }
 function renderChat(){
  const box=P().inbox||[],ln=leadName();
@@ -423,8 +465,10 @@ function renderLog(){
 /* ---------- карточка участника ---------- */
 const upl=id=>`<label class="btn upl">Свой персонаж<input type="file" accept="image/png,image/gif,image/svg+xml,image/webp" data-upload="${esc(id)}" hidden></label>`;
 function lookEditor(m){
- return `<div class="swatches">${FURS.map(c=>`<button class="sw" style="background:${c}" data-fur="${esc(m.id)}" data-c="${c}" aria-pressed="${c===fur(m.fur)&&!img(m.img)}" aria-label="Цвет шерсти ${FURS.indexOf(c)+1}"></button>`).join('')}</div>
-  <div class="hats">${HATS.map(([k,l])=>`<button class="btn" data-hat="${esc(m.id)}" data-k="${k}" aria-pressed="${k===hat(m.hat)}">${l}</button>`).join('')}</div>
+ const cur=img(m.img)?null:art(m.art);
+ return `<div class="arts" role="group" aria-label="Образ">${ARTS.map(([k,l])=>`<button class="artb" data-art="${esc(m.id)}" data-k="${k}" aria-pressed="${k===cur}"><img src="/cabinet/art-${k}-idle.webp" alt="" loading="lazy"><span>${l}</span></button>`).join('')}<button class="artb" data-art="${esc(m.id)}" data-k="svg" aria-pressed="${!cur&&!img(m.img)}"><span class="artsvg">${chip({...m,art:null,img:null,state:'working'})}</span><span>Рисунок</span></button></div>
+  ${cur?'':`<div class="swatches">${FURS.map(c=>`<button class="sw" style="background:${c}" data-fur="${esc(m.id)}" data-c="${c}" aria-pressed="${c===fur(m.fur)&&!img(m.img)}" aria-label="Цвет шерсти ${FURS.indexOf(c)+1}"></button>`).join('')}</div>
+  <div class="hats">${HATS.map(([k,l])=>`<button class="btn" data-hat="${esc(m.id)}" data-k="${k}" aria-pressed="${k===hat(m.hat)}">${l}</button>`).join('')}</div>`}
   <div class="chact">${upl(m.id)}${img(m.img)?`<button class="btn" data-reset="${esc(m.id)}">Вернуть бурундука</button>`:''}</div>`;
 }
 function detail(m){
@@ -472,7 +516,7 @@ function renderRoles(){
  const furOf=s=>FURS[parseInt(hash(String(s)),36)%FURS.length];
  return `<div class="page"><div class="ptitle"><h1>Роли</h1><p class="hint">Готовые специалисты: ${roles.length} ${plural(roles.length,['роль','роли','ролей'])} в библиотеке. Бригадир предлагает команду под задачу, вы убираете лишних и добавляете своих. Нужной роли нет — Бригадир создаст её сам.</p></div>
   <div class="cats" role="group" aria-label="Направления">${[['all','Все'],...Object.entries(cats)].map(([k,l])=>`<button class="btn" data-cat="${esc(k)}" aria-pressed="${k===S.roleCat}">${esc(l)}</button>`).join('')}</div>
-  <div class="rgrid">${list.map(r=>{const m={id:r.slug,name:r.title,role:r.title,fur:furOf(r.slug),hat:r.slug==='orchestrator'?'hardhat':'none',tool:r.tool,state:'working'};const ch=Array.isArray(r.checks)?r.checks:r.checks?[r.checks]:[];
+  <div class="rgrid">${list.map(r=>{const m={id:r.slug,name:r.title,role:r.title,fur:furOf(r.slug),hat:r.slug==='orchestrator'?'hardhat':'none',art:r.art,tool:r.tool,state:'working'};const ch=Array.isArray(r.checks)?r.checks:r.checks?[r.checks]:[];
    return `<article class="rcard">
    <div class="rhead">${mini(m)}<div><h3>${esc(r.title)}</h3><p class="hint">${esc(r.does)}</p></div></div>
    <p class="rmeta">${r.cls?`Модель <b>${esc(CLS[r.cls]||r.cls)}</b> · `:''}${esc(cats[r.cat]||'')}</p>
@@ -598,7 +642,7 @@ function answer(qid,text){text=String(text||'').trim();if(!text){toast('Напи
  act(slugP()+'/answer',{qid,text},'Ответ передан Бригадиру.')}
 function look(rid,body){
  const m=by(rid);if(m){Object.assign(m,body);if(body.reset)m.img=null;render()}
- act(slugP()+'/look',{rid,...body},body.reset?'Бурундук вернулся':'Внешний вид сохранён');
+ act(slugP()+'/look',{rid,...body},body.art?'Образ выбран':body.reset?'Бурундук вернулся':'Внешний вид сохранён');
 }
 async function accessAct(path,body,ok,want){
  if(S.busy)return;S.busy=true;
@@ -622,6 +666,8 @@ document.addEventListener('click',e=>{
  if(e.target.id==='scrim'){closeDrawer();return}
  const a=e.target.closest('a[data-nav]');
  if(a&&!e.metaKey&&!e.ctrlKey&&!e.shiftKey&&e.button===0){e.preventDefault();go(a.getAttribute('href'));return}
+ const ca=e.target.closest('a[data-cont]');
+ if(ca)continueIn('url');
  const t=e.target.closest('button,[data-open]');
  if(!t)return;
  const d=t.dataset;
@@ -630,9 +676,11 @@ document.addEventListener('click',e=>{
  else if(d.tochat){closeDrawer();location.hash='chat'}
  else if(d.conn){S.connOpen=!S.connOpen;renderConn()}
  else if(d.copy){copyFrom(d.copy)}
+ else if(d.cont){continueIn(d.cont)}
  else if(d.link){S.linkOpen=!S.linkOpen;render()}
  else if(d.pause){const on=d.pause==='1';act(slugP()+(on?'/pause':'/resume'),{},on?'Пауза. Работающие доделают текущий шаг.':'Работа продолжается.')}
  else if(d.qid!==undefined&&d.text!==undefined){answer(d.qid,d.text)}
+ else if(d.art){look(d.art,{art:d.k,reset:true})}
  else if(d.fur){look(d.fur,{fur:d.c})}
  else if(d.hat){look(d.hat,{hat:d.k})}
  else if(d.reset){look(d.reset,{reset:true})}

@@ -15,6 +15,7 @@ from __future__ import annotations
 import argparse
 import os
 import shutil
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -59,6 +60,93 @@ exec "{root}/bin/chekan" "$@"
 """
 
 
+WIN = os.name == "nt"
+BOOT = ("import os,sys;r=sys.argv.pop(1);p=os.path.join(r,'py','cp'+str(sys.version_info[0])+str(sys.version_info[1]));"
+        "os.path.isdir(os.path.join(r,'py')) and not os.path.isdir(p) and sys.exit('Чекан: нужен Python 3.9-3.14');"
+        "sys.path.insert(0,p if os.path.isdir(p) else r);from chekan.__main__ import main;sys.exit(main())")
+SHIM_CMD = '@"{python}" -X utf8 -c "{boot}" "{root}" %*\r\n'
+KEEP_BACKUPS = 5
+
+
+def shim_files() -> list[Path]:
+    return [p.with_name(p.name + ".cmd") for p in (shim_path(), short_path())] if WIN else [shim_path(), short_path()]
+
+
+def shim_body() -> str:
+    if WIN:
+        return SHIM_CMD.format(python=sys.executable, boot=BOOT, root=ROOT)
+    return SHIM.format(root=ROOT)
+
+
+def add_to_user_path(folder: Path) -> bool:
+    import winreg
+
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment", 0, winreg.KEY_READ | winreg.KEY_WRITE) as key:
+        try:
+            value, kind = winreg.QueryValueEx(key, "Path")
+        except FileNotFoundError:
+            value, kind = "", winreg.REG_EXPAND_SZ
+        parts = [x for x in value.split(";") if x]
+        if any(os.path.normcase(os.path.expandvars(x)).rstrip("\\") == os.path.normcase(str(folder)) for x in parts):
+            return False
+        winreg.SetValueEx(key, "Path", 0, kind, ";".join(parts + [str(folder)]))
+    try:
+        import ctypes
+
+        ctypes.windll.user32.SendMessageTimeoutW(0xFFFF, 0x1A, 0, "Environment", 2, 5000, None)
+    except Exception:
+        pass
+    return True
+
+
+def add_to_shell_profile(folder: Path) -> Path | None:
+    shell = os.path.basename(os.environ.get("SHELL", ""))
+    if shell == "zsh":
+        rc = Path.home() / ".zshrc"
+    elif shell == "bash":
+        rc = Path.home() / (".bash_profile" if sys.platform == "darwin" else ".bashrc")
+    else:
+        rc = Path.home() / ".profile"
+    line = f'export PATH="{folder}:$PATH"  # chekan'
+    try:
+        if line in rc.read_text(encoding="utf-8"):
+            return None
+    except FileNotFoundError:
+        pass
+    with open(rc, "a", encoding="utf-8") as fh:
+        fh.write(f"\n{line}\n")
+    return rc
+
+
+def save_progress(dry: bool) -> list[str]:
+    """Копия настроек, своих ролей и уроков перед каждой установкой и обновлением."""
+    src = config_dir()
+    if not src.is_dir():
+        return []
+    lessons = sorted(p.stem for p in (src / "lessons").glob("*.json")) if (src / "lessons").is_dir() else []
+    own = []
+    try:
+        import json
+
+        own = [r.get("title") or r.get("slug") for r in json.loads((src / "roles.json").read_text(encoding="utf-8")).get("role") or []]
+    except (OSError, ValueError, AttributeError):
+        pass
+    logs = [f"→ ваш прогресс в {src} не трогаю: уроки ролей — {len(lessons)}, свои роли — {len(own)}"]
+    dest_root = src.parent / "chekan-backups"
+    stamp = f"chekan-{datetime.now():%Y%m%d-%H%M%S}"
+    dest, n = dest_root / stamp, 1
+    while dest.exists():
+        n += 1
+        dest = dest_root / f"{stamp}-{n}"
+    if dry:
+        return logs + [f"    перед установкой будет копия в {dest_root}"]
+    shutil.copytree(src, dest, ignore=shutil.ignore_patterns("*.log", "*.pid", "*.lock", "__pycache__"))
+    old = sorted(p for p in dest_root.iterdir() if p.is_dir() and p.name.startswith("chekan-"))
+    for stale in old[:-KEEP_BACKUPS]:
+        shutil.rmtree(stale, ignore_errors=True)
+    return logs + [f"    копия: {dest}"]
+
+
 def backup(path: Path) -> Path:
     dest = path.with_name(f"{path.name}.bak-{datetime.now():%Y%m%d-%H%M%S}")
     shutil.copy2(path, dest)
@@ -66,6 +154,9 @@ def backup(path: Path) -> Path:
 
 
 def check_python() -> list[str]:
+    if (ROOT / "py").is_dir() and PKG == ROOT:
+        built = ", ".join(sorted(p.name[2] + "." + p.name[3:] for p in (ROOT / "py").glob("cp*")))
+        return [f"для Python {sys.version_info.major}.{sys.version_info.minor} сборки нет, есть: {built}"]
     if sys.version_info[:2] < MIN_PYTHON:
         return [
             f"нужен Python {MIN_PYTHON[0]}.{MIN_PYTHON[1]} или новее, "
@@ -118,7 +209,52 @@ def migrate_config(dry: bool) -> list[str]:
     return logs
 
 
-def install(dry: bool) -> int:
+def choose_agents(flag: str | None) -> set[str] | None:
+    """Куда ставить: флаг `--agents`, иначе вопрос в терминале, иначе во все найденные."""
+    sys.path.insert(0, str(PKG))
+    from chekan import agents
+
+    if flag is not None:
+        return agents.parse_only(flag)
+    found = [a for a in agents.registry() if a.present and a.key != "shared"]
+    if not found or not sys.stdin.isatty():
+        return None
+    print("Нашёл агентов:")
+    for n, a in enumerate(found, 1):
+        print(f"  {n}. {a.name}")
+    while True:
+        try:
+            answer = input("Куда поставить Чекан? Номера через запятую, Enter — во все: ").strip()
+        except EOFError:
+            raise ValueError("установка отменена")
+        if not answer:
+            return None
+        nums = [x for x in answer.replace(" ", ",").split(",") if x]
+        if all(x.isdigit() and 1 <= int(x) <= len(found) for x in nums):
+            return {found[int(x) - 1].key for x in nums}
+        print(f"  Не понял. Номера от 1 до {len(found)}, например: 1,3")
+
+
+def claude_plugin(dry: bool) -> None:
+    claude = shutil.which("claude")
+    steps = [["plugin", "marketplace", "add", str(ROOT)], ["plugin", "install", "chekan@codoceh", "--scope", "user", "-y"]]
+    if dry or not claude:
+        if not dry:
+            print("    команды `claude` нет в PATH — поставьте вручную:")
+        for st in steps:
+            print("      claude " + " ".join(st))
+        return
+    for st in steps:
+        res = subprocess.run([claude, *st], capture_output=True, text=True, timeout=300)
+        tail = (res.stdout + res.stderr).strip().splitlines()[-1:] or [""]
+        print(f"    claude {' '.join(st[:2])}: {'готово' if res.returncode == 0 else 'ошибка'} {tail[0][:160]}")
+        if res.returncode != 0:
+            print("      вручную: claude " + " ".join(st))
+            return
+    print("    хуки включатся в следующей сессии Claude Code")
+
+
+def install(dry: bool, only: set[str] | None = None) -> int:
     problems = check_python()
     if problems:
         for p in problems:
@@ -129,46 +265,53 @@ def install(dry: bool) -> int:
     print("Режим: проверка, без записи" if dry else "Режим: установка")
     print()
 
-    mig_logs = migrate_config(dry)
+    mig_logs = migrate_config(dry) + save_progress(dry)
     for l in mig_logs:
         print(l)
     if mig_logs:
         print()
 
-    body = SHIM.format(root=ROOT)
+    body = shim_body()
     print(f"→ команды `chekan` и `{SHORT_NAME}` в {bin_dir()}")
-    print(f"    путь к пакету зашит в сам шим, профиль оболочки не трогаем")
+    print("    путь к пакету зашит в сам шим")
     print(f"    `{SHORT_NAME}` — то же самое, короче на два знака; без аргументов")
     print("      любая из двух открывает разговорный режим")
     if not dry:
         bin_dir().mkdir(parents=True, exist_ok=True)
-        for shim in (shim_path(), short_path()):
+        for shim in shim_files():
+            if shim.exists() and shim.read_bytes() == body.encode("utf-8"):
+                continue
             if shim.exists():
                 print(f"    копия старой: {backup(shim)}")
-            shim.write_text(body, encoding="utf-8")
+            with open(shim, "w", encoding="utf-8", newline="") as fh:
+                fh.write(body)
             shim.chmod(0o755)
         print("    записано")
+        if WIN and add_to_user_path(bin_dir()):
+            print(f"    {bin_dir()} добавлен в PATH: команда заработает в новом окне терминала")
 
+    if only is None or "claude" in only:
+        print()
+        print("→ плагин Claude Code (скилл + хуки)")
+        claude_plugin(dry)
     print()
     print("→ раскладка по агентам (скиллы, плагины и указатели)")
     sys.path.insert(0, str(PKG))
     try:
         from chekan import agents
 
-        agents.apply(ROOT, dry=dry, remove=False)
+        agents.apply(ROOT, dry=dry, remove=False, only=only)
     except Exception as exc:
         print(f"    раскладка не удалась ({exc}) — вручную: python3 -m chekan agents --apply")
 
-    print()
-    print("→ плагин Claude Code (скилл + хуки)")
-    print("    из терминала:")
-    print(f"      claude plugin marketplace add {ROOT}")
-    print("      claude plugin install chekan@codoceh --scope user -y")
-    print("    либо в сессии: /plugin marketplace add … и /plugin install …")
 
-    if str(bin_dir()) not in os.environ.get("PATH", ""):
+    if not WIN and str(bin_dir()) not in os.environ.get("PATH", "").split(os.pathsep):
         print()
-        print(f"! {bin_dir()} нет в PATH — добавьте, иначе команда `chekan` не найдётся")
+        rc = None if dry else add_to_shell_profile(bin_dir())
+        if dry:
+            print(f"→ {bin_dir()} нет в PATH: будет добавлен в профиль оболочки")
+        elif rc:
+            print(f"→ {bin_dir()} добавлен в PATH через {rc}: команда заработает в новом окне терминала")
 
     print()
     print("Проверить установку: `chekan doctor`" if not dry else "Ничего не записано.")
@@ -178,7 +321,7 @@ def install(dry: bool) -> int:
 def uninstall(dry: bool) -> int:
     print("Снятие Чекана")
     print()
-    all_shims = [shim_path(), short_path(), *(bin_dir() / s for s in OLD_SHIMS)]
+    all_shims = [*shim_files(), *(bin_dir() / s for s in OLD_SHIMS)]
     for shim in all_shims:
         if shim.exists():
             print(f"→ удалить {shim}")
@@ -198,7 +341,7 @@ def uninstall(dry: bool) -> int:
     except Exception as exc:
         print(f"    снять не удалось ({exc}) — вручную: python3 -m chekan agents --remove --apply")
 
-    stale_patterns = ["chekan.bak-*", f"{SHORT_NAME}.bak-*", "ceh.bak-*", "ц.bak-*"]
+    stale_patterns = ["chekan.bak-*", f"{SHORT_NAME}.bak-*", "chekan.cmd.bak-*", f"{SHORT_NAME}.cmd.bak-*", "ceh.bak-*", "ц.bak-*"]
     stale = []
     for pat in stale_patterns:
         stale.extend(bin_dir().glob(pat))
@@ -234,11 +377,24 @@ def main() -> int:
     ap = argparse.ArgumentParser(description="Установка Чекана")
     ap.add_argument("--check", action="store_true", help="показать, что будет сделано")
     ap.add_argument("--uninstall", action="store_true", help="снять")
+    ap.add_argument("--agents", default=None,
+                    help="куда ставить: claude,codex,cursor,antigravity,opencode,grok (без флага — спросит)")
     ap.add_argument("--service", action="store_true",
                     help="поставить фоновый сервис Телеграма: бот отвечает всегда, "
                          "а не пока запущена панель")
     parsed = ap.parse_args(args)
-    code = uninstall(parsed.check) if parsed.uninstall else install(parsed.check)
+    for problem in check_python():
+        print(f"✗ {problem}")
+        return 1
+    if parsed.uninstall:
+        code = uninstall(parsed.check)
+    else:
+        try:
+            only = choose_agents(parsed.agents)
+        except ValueError as exc:
+            print(f"✗ {exc}")
+            return 2
+        code = install(parsed.check, only)
     if code == 0 and want_service and not parsed.uninstall and not parsed.check:
         from chekan import service
 

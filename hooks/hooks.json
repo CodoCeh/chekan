@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chekan_hook.py\"",
+            "command": "$(command -v py >/dev/null 2>&1 && echo py -3 || echo python3) \"${CLAUDE_PLUGIN_ROOT}\"/hooks/chekan_hook.py",
             "timeout": 15
           }
         ]
@@ -16,7 +16,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chekan_hook.py\"",
+            "command": "$(command -v py >/dev/null 2>&1 && echo py -3 || echo python3) \"${CLAUDE_PLUGIN_ROOT}\"/hooks/chekan_hook.py",
             "timeout": 30
           }
         ]
@@ -26,7 +26,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chekan_hook.py\"",
+            "command": "$(command -v py >/dev/null 2>&1 && echo py -3 || echo python3) \"${CLAUDE_PLUGIN_ROOT}\"/hooks/chekan_hook.py",
             "timeout": 15
           }
         ]
@@ -37,7 +37,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chekan_hook.py\"",
+            "command": "$(command -v py >/dev/null 2>&1 && echo py -3 || echo python3) \"${CLAUDE_PLUGIN_ROOT}\"/hooks/chekan_hook.py",
             "timeout": 15
           }
         ]
@@ -48,7 +48,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chekan_hook.py\"",
+            "command": "$(command -v py >/dev/null 2>&1 && echo py -3 || echo python3) \"${CLAUDE_PLUGIN_ROOT}\"/hooks/chekan_hook.py",
             "timeout": 15
           }
         ]
@@ -60,7 +60,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chekan_hook.py\"",
+            "command": "$(command -v py >/dev/null 2>&1 && echo py -3 || echo python3) \"${CLAUDE_PLUGIN_ROOT}\"/hooks/chekan_hook.py",
             "timeout": 15
           }
         ]
@@ -70,7 +70,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/hooks/chekan_hook.py\"",
+            "command": "$(command -v py >/dev/null 2>&1 && echo py -3 || echo python3) \"${CLAUDE_PLUGIN_ROOT}\"/hooks/chekan_hook.py",
             "timeout": 15
           }
         ]

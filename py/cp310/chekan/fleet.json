@@ -46,6 +46,8 @@
    "workspace-write",
    "-c",
    "sandbox_workspace_write.network_access=true",
+   "-c",
+   "model_auto_compact_token_limit=400000",
    "--skip-git-repo-check",
    "{prompt}"
   ],

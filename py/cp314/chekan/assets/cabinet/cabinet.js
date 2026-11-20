@@ -362,10 +362,11 @@ function counts(){
  const c={working:0,waiting:0,resting:0};team().forEach(m=>c[st(m.state)]++);
  return `<div class="legend">${Object.keys(c).map(k=>`<span>${pill(k)} ${c[k]}</span>`).join('')}</div>`;
 }
+function ctxNote(m){const k=Math.round((m.ctx||0)/1000);if(!k&&!m.squeezed)return '';return `<span class="ctx${k>400?' over':''}">Контекст ${k} тыс. из 400${m.squeezed?` · сжат ${m.squeezed} раз`:''}</span>`}
 function progressPanel(){
  const rows=team().map(m=>{const [d,t]=Array.isArray(m.prog)?m.prog.map(Number):[0,0];const n=Math.min(Math.max(t,0),30);
   const segs=Array.from({length:n},(_,i)=>`<span class="seg2 ${i<d?'on':''}${i===d&&st(m.state)==='working'?' cur':''}"></span>`).join('');
-  return `<li><button class="prow" data-open="${esc(m.id)}">${chip(m)}<span class="pn"><b>${esc(m.name)}</b><span class="rl">${esc(m.spec)}</span></span><span class="pbar" aria-label="Шаг ${d} из ${t}">${segs}</span><span class="pst">${t?`<span class="ps">Шаг ${d} из ${t}</span>`:''}${esc(m.step)}</span>${pill(m.state)}</button></li>`}).join('');
+  return `<li><button class="prow" data-open="${esc(m.id)}">${chip(m)}<span class="pn"><b>${esc(m.name)}</b><span class="rl">${esc(m.spec)}</span></span><span class="pbar" aria-label="Шаг ${d} из ${t}">${segs}</span><span class="pst">${t?`<span class="ps">Шаг ${d} из ${t}</span>`:''}${esc(m.step)}${ctxNote(m)}</span>${pill(m.state)}</button></li>`}).join('');
  return `<section class="panel"><h2>Кто на каком этапе</h2>${rows?`<ul class="prog">${rows}</ul>`:'<p class="hint">Команда ещё не собрана.</p>'}</section>`;
 }
 function renderOffice(){

@@ -14,7 +14,11 @@ const TABS=[['office','Кабинет'],['chat','Чат'],['progress','Ход р
 const TASK_ST={pending:['resting','В очереди'],'in-progress':['working','В работе'],review:['waiting','На проверке'],repair:['waiting','На доработке'],done:['working','Готово'],failed:['waiting','Не получилось']};
 const CLS={light:'лёгкая',work:'рабочая',strong:'сильная',expensive:'дорогая'};
 const PER_ROW=6,PER_ROOM=18,ROWH=290,MAX_IMG=300*1024,NARROW=matchMedia('(max-width:640px)'),PHONE=matchMedia('(max-width:520px)');
-if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');
+const EMBED=new URLSearchParams(location.search).has('embed');
+if(EMBED)document.documentElement.classList.add('embed');
+const phone=()=>EMBED||PHONE.matches;
+function phoneClass(){document.documentElement.classList.toggle('phone',phone())}
+phoneClass();
 
 const S={page:'projects',slug:null,tab:'office',projects:null,project:null,roles:null,access:null,raw:{},
  drawerId:null,room:0,linkOpen:false,connOpen:false,roleCat:'all',charsSlug:null,back:null,busy:false,offline:false,lastInbox:-1,loginErr:''};
@@ -366,7 +370,7 @@ function progressPanel(){
 }
 function renderOffice(){
  const q=openQs(),r=P().results||[];
- if(PHONE.matches)return `<div class="page">${q.length?askCard(q[0],0):''}${roomSwitch()}${office()}${counts()}${progressPanel()}
+ if(phone())return `<div class="page">${q.length?askCard(q[0],0):''}${roomSwitch()}${office()}${counts()}${progressPanel()}
   ${r.length?`<section class="panel"><h2>Готово · ${r.length}</h2>${resultsList(r)}</section>`:''}</div>`;
  return `<div class="page">${stagesList()}${q.length?askCard(q[0],0):''}${roomSwitch()}${office()}${counts()}${progressPanel()}</div>`;
 }
@@ -395,7 +399,7 @@ function projectHead(){
  const p=P(),q=openQs().length;
  return `<div class="phead">
   <a class="back" href="/" data-nav>← Проекты</a>
-  ${PHONE.matches?phoneHero():''}
+  ${phone()?phoneHero():''}
   <div class="phrow"><h1>${esc(p.title)}</h1>
    <div class="pact">${p.finished?'':p.paused?`<button class="btn primary" data-pause="0">Продолжить</button>`:`<button class="btn" data-pause="1">Поставить на паузу</button>`}
    <a class="btn" href="#chat">Чат с Бригадиром</a>
@@ -636,7 +640,7 @@ function viewHtml(){
  return projectHead()+`<div class="${P().paused?'paused':''}">${R[S.tab]()}</div>`;
 }
 NARROW.addEventListener('change',()=>{if(S.page==='project')render()});
-PHONE.addEventListener('change',()=>{if(S.page==='project')render()});
+PHONE.addEventListener('change',()=>{phoneClass();if(S.page==='project')render()});
 function render(fresh){
  const g=S.page==='project'?'projects':S.page;
  document.querySelectorAll('.gnav a').forEach(a=>a.setAttribute('aria-current',a.dataset.g===g?'page':'false'));

@@ -13,7 +13,8 @@ const STATE={working:'Работает',waiting:'Ждёт',resting:'Отдыха
 const TABS=[['office','Кабинет'],['chat','Чат'],['progress','Ход работы'],['questions','Вопросы'],['results','Результаты'],['team','Команда'],['spend','Расход'],['log','Журнал']];
 const TASK_ST={pending:['resting','В очереди'],'in-progress':['working','В работе'],review:['waiting','На проверке'],repair:['waiting','На доработке'],done:['working','Готово'],failed:['waiting','Не получилось']};
 const CLS={light:'лёгкая',work:'рабочая',strong:'сильная',expensive:'дорогая'};
-const PER_ROW=6,PER_ROOM=18,ROWH=290,MAX_IMG=300*1024,NARROW=matchMedia('(max-width:640px)');
+const PER_ROW=6,PER_ROOM=18,ROWH=290,MAX_IMG=300*1024,NARROW=matchMedia('(max-width:640px)'),PHONE=matchMedia('(max-width:520px)');
+if(new URLSearchParams(location.search).has('embed'))document.documentElement.classList.add('embed');
 
 const S={page:'projects',slug:null,tab:'office',projects:null,project:null,roles:null,access:null,raw:{},
  drawerId:null,room:0,linkOpen:false,connOpen:false,roleCat:'all',charsSlug:null,back:null,busy:false,offline:false,lastInbox:-1,loginErr:''};
@@ -364,15 +365,37 @@ function progressPanel(){
  return `<section class="panel"><h2>Кто на каком этапе</h2>${rows?`<ul class="prog">${rows}</ul>`:'<p class="hint">Команда ещё не собрана.</p>'}</section>`;
 }
 function renderOffice(){
- const q=openQs();
+ const q=openQs(),r=P().results||[];
+ if(PHONE.matches)return `<div class="page">${q.length?askCard(q[0],0):''}${roomSwitch()}${office()}${counts()}${progressPanel()}
+  ${r.length?`<section class="panel"><h2>Готово · ${r.length}</h2>${resultsList(r)}</section>`:''}</div>`;
  return `<div class="page">${stagesList()}${q.length?askCard(q[0],0):''}${roomSwitch()}${office()}${counts()}${progressPanel()}</div>`;
 }
+
+/* ---------- телефон ---------- */
+function phoneHero(){
+ const p=P(),stg=Array.isArray(p.stages)?p.stages:[],tasks=p.tasks||[];
+ const i=stg.findIndex(([,c])=>c==='current'),cur=i<0?(p.finished?stg.length:0):i;
+ const name=p.finished?'Сдан':i<0?'':stg[i][0];
+ const done=tasks.filter(t=>t.status==='done').length;
+ const pct=p.finished?100:tasks.length?Math.round(done/tasks.length*100):stg.length?Math.round(cur/stg.length*100):0;
+ const anim=!p.finished&&!p.paused;
+ return `<section class="phero" aria-label="Прогон">
+  <div class="forge${anim?' on':''}" aria-hidden="true"><img src="/cabinet/forge-up.webp" alt=""><img src="/cabinet/forge-mid.webp" alt=""><img src="/cabinet/forge-hit.webp" alt=""></div>
+  <div class="ptxt"><h1>${esc(p.title)}</h1><p class="pstage">${p.paused?'Пауза · ':''}${esc(name)}${stg.length&&!p.finished?` · ${cur+1} из ${stg.length}`:''}</p></div>
+  <div class="pbar1" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="width:${pct}%"></i></div>
+  <p class="pmeta"><span>${tasks.length?`Задачи: ${done} из ${tasks.length}`:'Задачи ещё не нарезаны'}</span><span>${counts0()}</span></p>
+ </section>`;
+}
+function counts0(){const c={working:0,waiting:0};team().forEach(m=>{const k=st(m.state);if(k in c)c[k]++});return c.working?`работают ${c.working}`:c.waiting?`ждут ${c.waiting}`:''}
+function fileHref(path){return slugP()+'/file?path='+encodeURIComponent(path)}
+function resultsList(r){return `<ul class="files">${r.map(x=>`<li>${ficon(x.kind)}<span><span class="fn">${esc(x.path)}</span><br><span class="fm">${x.task?'Задача '+esc(x.task)+' · ':''}${size(x.size)}</span></span><a class="btn open" href="${esc(fileHref(x.path))}" target="_blank" rel="noopener">Открыть</a></li>`).join('')}</ul>`}
 
 /* ---------- вкладки проекта ---------- */
 function projectHead(){
  const p=P(),q=openQs().length;
  return `<div class="phead">
   <a class="back" href="/" data-nav>← Проекты</a>
+  ${PHONE.matches?phoneHero():''}
   <div class="phrow"><h1>${esc(p.title)}</h1>
    <div class="pact">${p.finished?'':p.paused?`<button class="btn primary" data-pause="0">Продолжить</button>`:`<button class="btn" data-pause="1">Поставить на паузу</button>`}
    <a class="btn" href="#chat">Чат с Бригадиром</a>
@@ -436,7 +459,7 @@ function renderQuestions(){
 function renderResults(){
  const r=P().results||[];
  return `<div class="page"><section class="panel"><h2>${P().finished?'Готово':'Результаты'}</h2>
-  ${r.length?`<ul class="files">${r.map(x=>`<li>${ficon(x.kind)}<span><span class="fn">${esc(x.path)}</span><br><span class="fm">${x.task?'Задача '+esc(x.task)+' · ':''}${size(x.size)}</span></span></li>`).join('')}</ul>`:'<p class="hint">Здесь появятся результаты, которые прошли проверку.</p>'}
+  ${r.length?resultsList(r):'<p class="hint">Здесь появятся результаты, которые прошли проверку.</p>'}
   <p class="hint">Файлы лежат в папке проекта на компьютере, где запущен Чекан.</p></section></div>`;
 }
 function renderTeamPage(){
@@ -613,6 +636,7 @@ function viewHtml(){
  return projectHead()+`<div class="${P().paused?'paused':''}">${R[S.tab]()}</div>`;
 }
 NARROW.addEventListener('change',()=>{if(S.page==='project')render()});
+PHONE.addEventListener('change',()=>{if(S.page==='project')render()});
 function render(fresh){
  const g=S.page==='project'?'projects':S.page;
  document.querySelectorAll('.gnav a').forEach(a=>a.setAttribute('aria-current',a.dataset.g===g?'page':'false'));

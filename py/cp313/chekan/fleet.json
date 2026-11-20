@@ -1,0 +1,274 @@
+{
+ "claude": {
+  "title": "Claude Code",
+  "company": "Anthropic",
+  "bin": [
+   "claude"
+  ],
+  "run": [
+   "claude",
+   "-p",
+   "{prompt}",
+   "--permission-mode",
+   "acceptEdits"
+  ],
+  "model_flag": "--model",
+  "status": {
+   "argv": [
+    "claude",
+    "auth",
+    "status"
+   ],
+   "yes": "\"loggedIn\": true"
+  },
+  "login": [
+   "claude",
+   "auth",
+   "login"
+  ],
+  "install": "https://claude.com/claude-code",
+  "good_for": [
+   "code",
+   "text",
+   "review"
+  ]
+ },
+ "codex": {
+  "title": "Codex",
+  "company": "OpenAI",
+  "bin": [
+   "codex"
+  ],
+  "run": [
+   "codex",
+   "exec",
+   "-s",
+   "workspace-write",
+   "-c",
+   "sandbox_workspace_write.network_access=true",
+   "--skip-git-repo-check",
+   "{prompt}"
+  ],
+  "model_flag": "-m",
+  "status": {
+   "argv": [
+    "codex",
+    "login",
+    "status"
+   ],
+   "yes": "Logged in"
+  },
+  "login": [
+   "codex",
+   "login"
+  ],
+  "install": "npm install -g @openai/codex",
+  "good_for": [
+   "code",
+   "review"
+  ],
+  "add_dir_flag": "--add-dir",
+  "add_dirs": [
+   "~/.cache/uv",
+   "~/.cache/pip"
+  ]
+ },
+ "cursor": {
+  "title": "Cursor",
+  "company": "Cursor",
+  "bin": [
+   "cursor-agent",
+   "agent"
+  ],
+  "run": [
+   "{bin}",
+   "-p",
+   "--force",
+   "--trust",
+   "{prompt}"
+  ],
+  "model_flag": "--model",
+  "status": {
+   "argv": [
+    "{bin}",
+    "status"
+   ],
+   "yes": "Logged in"
+  },
+  "login": [
+   "{bin}",
+   "login"
+  ],
+  "install": "https://cursor.com/cli",
+  "good_for": [
+   "code"
+  ]
+ },
+ "antigravity": {
+  "title": "Antigravity",
+  "company": "Google",
+  "bin": [
+   "agy"
+  ],
+  "run": [
+   "agy",
+   "-p",
+   "{prompt}",
+   "--mode",
+   "accept-edits"
+  ],
+  "model_flag": "--model",
+  "status": null,
+  "login": [
+   "agy"
+  ],
+  "install": "https://antigravity.google",
+  "good_for": [
+   "code",
+   "research"
+  ]
+ },
+ "gemini": {
+  "title": "Gemini CLI",
+  "company": "Google",
+  "bin": [
+   "gemini"
+  ],
+  "run": [
+   "gemini",
+   "--skip-trust",
+   "--approval-mode",
+   "auto_edit",
+   "-p",
+   "{prompt}"
+  ],
+  "model_flag": "-m",
+  "status": null,
+  "login": [
+   "gemini"
+  ],
+  "install": "npm install -g @google/gemini-cli",
+  "good_for": [
+   "research",
+   "text"
+  ]
+ },
+ "grok": {
+  "title": "Grok",
+  "company": "xAI",
+  "bin": [
+   "grok"
+  ],
+  "run": [
+   "grok",
+   "--always-approve",
+   "-p",
+   "{prompt}"
+  ],
+  "model_flag": "-m",
+  "status": {
+   "argv": [
+    "grok",
+    "models"
+   ],
+   "no": "not authenticated"
+  },
+  "login": [
+   "grok",
+   "login"
+  ],
+  "install": "https://x.ai/cli",
+  "good_for": [
+   "code",
+   "research"
+  ]
+ },
+ "opencode": {
+  "title": "opencode",
+  "company": "opencode",
+  "bin": [
+   "opencode"
+  ],
+  "run": [
+   "opencode",
+   "run",
+   "{prompt}"
+  ],
+  "model_flag": "-m",
+  "status": {
+   "argv": [
+    "opencode",
+    "auth",
+    "list"
+   ],
+   "yes": "●"
+  },
+  "login": [
+   "opencode",
+   "auth",
+   "login"
+  ],
+  "install": "npm install -g opencode-ai",
+  "good_for": [
+   "code"
+  ]
+ },
+ "kimi": {
+  "title": "Kimi CLI",
+  "company": "Moonshot",
+  "bin": [
+   "kimi"
+  ],
+  "run": [
+   "kimi",
+   "--print",
+   "-c",
+   "{prompt}"
+  ],
+  "model_flag": "-m",
+  "status": null,
+  "login": [
+   "kimi"
+  ],
+  "install": "uv tool install kimi-cli",
+  "good_for": [
+   "code"
+  ]
+ },
+ "qwen": {
+  "title": "Qwen Code",
+  "company": "Alibaba",
+  "bin": [
+   "qwen"
+  ],
+  "run": [
+   "qwen",
+   "--yolo",
+   "-p",
+   "{prompt}"
+  ],
+  "model_flag": "-m",
+  "status": null,
+  "login": [
+   "qwen"
+  ],
+  "install": "npm install -g @qwen-code/qwen-code",
+  "good_for": [
+   "code"
+  ]
+ },
+ "mimo": {
+  "title": "MiMo",
+  "company": "Xiaomi",
+  "bin": [
+   "mimo"
+  ],
+  "run": null,
+  "status": null,
+  "login": [
+   "mimo"
+  ],
+  "install": null,
+  "good_for": []
+ }
+}

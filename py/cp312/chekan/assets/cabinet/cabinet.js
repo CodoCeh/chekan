@@ -404,7 +404,6 @@ function projectHead(){
   <div class="phrow"><h1>${esc(p.title)}</h1>
    <div class="pact">${p.finished?'':p.paused?`<button class="btn primary" data-pause="0">Продолжить</button>`:`<button class="btn" data-pause="1">Поставить на паузу</button>`}
    <a class="btn" href="#chat">Чат с Бригадиром</a>
-   ${S.access&&S.access.host&&p.continue&&!p.finished?contBtn(p.continue):''}
    ${p.link?`<button class="btn" data-link="1" aria-expanded="${S.linkOpen}">Ссылка на прогон</button>`:''}</div></div>
   ${S.linkOpen&&p.link?`<div class="linkbox"><div class="lrow"><code id="runlink">${esc(p.link)}</code><button class="btn primary" data-copy="runlink">Скопировать</button></div>
    <p class="hint">Ссылка работает на любом устройстве в вашей сети: на компьютере, КовКоде или телефоне. С другого устройства Чекан спросит пароль и откроет сразу этот прогон.</p></div>`:''}
@@ -413,11 +412,6 @@ function projectHead(){
   ${p.paused?`<div class="pausebar">Пауза${p.paused_since?' с '+esc(hm(p.paused_since)):''}. Новые задачи не раздаются. Продолжить можно в любой момент: кнопкой здесь или фразой «продолжай» в чате с Бригадиром.</div>`:''}
   <nav class="subnav" aria-label="Разделы проекта">${TABS.map(([k,l])=>`<a href="#${k}"${S.tab===k?' aria-current="page"':''}>${l}${k==='questions'&&q?`<span class="badge">${q}</span>`:''}</a>`).join('')}</nav>
  </div>`;
-}
-function contBtn(c){
- const label=`Продолжить в ${esc(c.app)}`;
- if(c.url)return `<a class="btn" href="${esc(c.url)}" data-cont="url">${label}</a>`;
- return `<button class="btn" data-cont="${c.server?'open':'cmd'}">${label}</button>`;
 }
 function copyText(v){
  if(navigator.clipboard&&window.isSecureContext)return navigator.clipboard.writeText(v).then(()=>true,()=>false);

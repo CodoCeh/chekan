@@ -12,8 +12,8 @@
   }
  },
  "codex": {
-  "light": "gpt-5-mini",
-  "work": "gpt-5",
+  "light": "gpt-6-luna",
+  "work": "gpt-6-luna",
   "expensive": "gpt-5-pro",
   "known": {
    "gpt-5-mini": "light",
@@ -21,7 +21,8 @@
    "gpt-5": "work",
    "gpt-5-codex": "work",
    "gpt-5-pro": "expensive",
-   "o3-pro": "expensive"
+   "o3-pro": "expensive",
+   "gpt-6-luna": "light"
   }
  },
  "opencode": {
